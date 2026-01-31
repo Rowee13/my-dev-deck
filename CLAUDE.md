@@ -131,3 +131,67 @@ This project uses **pnpm** (version 10.19.0) with workspaces. Always use `pnpm` 
 ## Node Version
 
 Requires Node.js >= 18
+
+## Open Source Project
+
+This is an **open source project** (MIT License) built in public to showcase development capabilities and help the developer community. Key points:
+
+- All development happens transparently on GitHub
+- Contributions are welcome - see [CONTRIBUTING.md](./CONTRIBUTING.md)
+- Project follows the [Code of Conduct](./CODE_OF_CONDUCT.md)
+- Issues and feature requests use GitHub issue templates
+- PRs follow the pull request template with required checks
+
+## Docker Development
+
+The project includes Docker setup for local development and production deployment:
+
+```bash
+# Start all services (PostgreSQL + API + Web)
+docker-compose up
+
+# Start specific service
+docker-compose up api
+docker-compose up web
+
+# Start with docs (uses profile)
+docker-compose --profile full up
+
+# Build images
+docker-compose build
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (clean slate)
+docker-compose down -v
+```
+
+**Services:**
+- `postgres`: PostgreSQL 16 database on port 5432
+- `api`: NestJS backend on ports 3000 (HTTP) and 2525 (SMTP)
+- `web`: Next.js dashboard on port 3001
+- `docs`: Next.js documentation on port 3002 (optional, use `--profile full`)
+
+All development files are volume-mounted for hot reload.
+
+## CI/CD
+
+GitHub Actions workflow runs on every push and PR to `main`:
+
+- **Lint**: ESLint checks across all packages
+- **Type Check**: TypeScript compilation verification
+- **Test**: Jest tests for API
+- **Build**: Production builds of all apps
+
+See `.github/workflows/ci.yml` for configuration.
+
+## Environment Configuration
+
+Each app has an `.env.example` file showing required environment variables:
+
+- `apps/api/.env.example` - Database, SMTP, API config
+- `apps/web/.env.example` - API URL and frontend config
+- `apps/docs/.env.example` - Documentation app config
+
+Copy these to `.env` or `.env.local` and customize for your environment.
