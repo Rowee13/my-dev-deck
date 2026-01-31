@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: devdeck-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: devdeck
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NestJS API
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: development
+    container_name: devdeck-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "2525:2525"  # SMTP port for DevInbox
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/devdeck
+      PORT: 3000
+      SMTP_PORT: 2525
+      SMTP_DOMAIN: devinbox.local
+      CORS_ORIGINS: http://localhost:3001,http://localhost:3000
+    volumes:
+      - ./apps/api:/app/apps/api
+      - ./packages:/app/packages
+      - /app/node_modules
+      - /app/apps/api/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: pnpm --filter api start:dev
+
+  # Next.js Web Dashboard
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: development
+    container_name: devdeck-web
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+    volumes:
+      - ./apps/web:/app/apps/web
+      - ./packages:/app/packages
+      - /app/node_modules
+      - /app/apps/web/node_modules
+      - /app/apps/web/.next
+    command: pnpm --filter web dev
+
+  # Next.js Docs (Optional)
+  docs:
+    build:
+      context: .
+      dockerfile: apps/docs/Dockerfile
+      target: development
+    container_name: devdeck-docs
+    restart: unless-stopped
+    ports:
+      - "3002:3000"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+    volumes:
+      - ./apps/docs:/app/apps/docs
+      - ./packages:/app/packages
+      - /app/node_modules
+      - /app/apps/docs/node_modules
+      - /app/apps/docs/.next
+    command: pnpm --filter docs dev
+    profiles:
+      - full  # Only start with --profile full
+
+volumes:
+  postgres_data:
+    driver: local
