@@ -1,98 +1,95 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# API Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS backend API for My Dev Deck providing REST endpoints and SMTP server functionality.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Overview
 
-## Description
+This backend serves as the core service layer for all My Dev Deck tools. It handles data persistence, business logic, and integrations like SMTP email reception for DevInbox.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Tech Stack
 
-## Project setup
+- **Framework:** NestJS 11
+- **Database:** PostgreSQL + Prisma ORM
+- **Runtime:** Node.js 18+
+- **Testing:** Jest
+- **TypeScript:** 5.7.3
+
+## Development
 
 ```bash
-$ pnpm install
+# Run in development mode with watch
+pnpm --filter api start:dev
+
+# Run in debug mode
+pnpm --filter api start:debug
+
+# Build for production
+pnpm --filter api build
+
+# Start production build
+pnpm --filter api start:prod
+
+# Run tests
+pnpm --filter api test
+
+# Run tests in watch mode
+pnpm --filter api test:watch
+
+# Run tests with coverage
+pnpm --filter api test:cov
+
+# Run e2e tests
+pnpm --filter api test:e2e
 ```
 
-## Compile and run the project
+The API server runs on **http://localhost:3000**
+
+## Structure
+
+```
+apps/api/
+├── src/
+│   ├── main.ts           # Application entry point
+│   ├── app.module.ts     # Root module
+│   ├── app.controller.ts # Root controller
+│   └── app.service.ts    # Root service
+├── test/                 # E2E tests
+├── prisma/              # Database schema (to be added)
+└── package.json         # Dependencies
+```
+
+## Environment Variables
+
+Create `.env` based on `.env.example`:
 
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/devdeck
+PORT=3000
+NODE_ENV=development
+SMTP_PORT=2525
+SMTP_DOMAIN=devinbox.local
 ```
 
-## Run tests
+## API Endpoints
 
-```bash
-# unit tests
-$ pnpm run test
+### Health Check
+- `GET /` - API status
 
-# e2e tests
-$ pnpm run test:e2e
+### DevInbox (Planned)
+- `POST /api/projects` - Create project
+- `GET /api/projects` - List projects
+- `GET /api/projects/:id/emails` - List emails
+- `GET /api/projects/:id/emails/:emailId` - Get email details
 
-# test coverage
-$ pnpm run test:cov
-```
+## SMTP Server
 
-## Deployment
+The API includes an embedded SMTP server (port 2525) for receiving emails in DevInbox. It parses incoming emails and stores them in the database.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Database
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Uses PostgreSQL with Prisma ORM. Migrations and schema will be added during DevInbox implementation.
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
+## Related
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- Frontend: `apps/web` - Dashboard UI
+- Docs: See root README for overall architecture

@@ -1,28 +1,67 @@
-## Getting Started
+# Web Dashboard
 
-First, run the development server:
+The main dashboard application for My Dev Deck, built with Next.js 16 and the App Router.
+
+## Overview
+
+This is the primary user interface where developers interact with all the tools in My Dev Deck. It provides a unified dashboard with sidebar navigation to access different developer tools.
+
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **React:** 19.2.0
+- **Styling:** Tailwind CSS 4
+- **UI Components:** @repo/ui (shared component library)
+- **TypeScript:** 5.9.2
+
+## Development
 
 ```bash
-yarn dev
+# Run development server
+pnpm --filter web dev
+
+# Build for production
+pnpm --filter web build
+
+# Start production server
+pnpm --filter web start
+
+# Type check
+pnpm --filter web check-types
+
+# Lint
+pnpm --filter web lint
 ```
 
-Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.
+The development server runs on **http://localhost:3001**
 
-You can start editing the page by modifying `src/app/page.tsx`. The page auto-updates as you edit the file.
+## Structure
 
-To create [API routes](https://nextjs.org/docs/app/building-your-application/routing/router-handlers) add an `api/` directory to the `app/` directory with a `route.ts` file. For individual endpoints, create a subfolder in the `api` directory, like `api/hello/route.ts` would map to [http://localhost:3001/api/hello](http://localhost:3001/api/hello).
+```
+apps/web/
+├── app/              # Next.js app directory (routes)
+├── public/           # Static assets
+├── next.config.ts    # Next.js configuration
+├── tsconfig.json     # TypeScript configuration
+└── package.json      # Dependencies
+```
 
-## Learn More
+## Environment Variables
 
-To learn more about Next.js, take a look at the following resources:
+Create `.env.local` based on `.env.example`:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn/foundations/about-nextjs) - an interactive Next.js tutorial.
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## Features
 
-## Deploy on Vercel
+- Dashboard layout with sidebar navigation
+- Tool sections (DevInbox, future tools)
+- Responsive design
+- Dark mode support (planned)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_source=github.com&utm_medium=referral&utm_campaign=turborepo-readme) from the creators of Next.js.
+## Related
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- API: `apps/api` - Backend API
+- UI Components: `packages/ui` - Shared components

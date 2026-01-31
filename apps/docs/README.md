@@ -1,28 +1,59 @@
-## Getting Started
+# Documentation Site
 
-First, run the development server:
+Documentation and guides for My Dev Deck, built with Next.js.
+
+## Overview
+
+This application provides comprehensive documentation, tutorials, and guides for using My Dev Deck and its tools.
+
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **React:** 19.2.0
+- **Styling:** Tailwind CSS 4
+- **TypeScript:** 5.9.2
+
+## Development
 
 ```bash
-yarn dev
+# Run development server
+pnpm --filter docs dev
+
+# Build for production
+pnpm --filter docs build
+
+# Start production server
+pnpm --filter docs start
+
+# Type check
+pnpm --filter docs check-types
+
+# Lint
+pnpm --filter docs lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The development server runs on **http://localhost:3000**
 
-You can start editing the page by modifying `src/app/page.tsx`. The page auto-updates as you edit the file.
+## Structure
 
-To create [API routes](https://nextjs.org/docs/app/building-your-application/routing/router-handlers) add an `api/` directory to the `app/` directory with a `route.ts` file. For individual endpoints, create a subfolder in the `api` directory, like `api/hello/route.ts` would map to [http://localhost:3000/api/hello](http://localhost:3000/api/hello).
+```
+apps/docs/
+├── app/              # Next.js app directory (routes)
+├── public/           # Static assets
+├── next.config.ts    # Next.js configuration
+└── package.json      # Dependencies
+```
 
-## Learn More
+## Content
 
-To learn more about Next.js, take a look at the following resources:
+Documentation includes:
+- Getting started guides
+- Tool-specific documentation
+- API reference
+- Architecture diagrams
+- Deployment guides
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn/foundations/about-nextjs) - an interactive Next.js tutorial.
+## Related
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_source=github.com&utm_medium=referral&utm_campaign=turborepo-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- Main App: `apps/web` - Dashboard
+- API: `apps/api` - Backend
