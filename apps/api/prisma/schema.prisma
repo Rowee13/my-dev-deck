@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// DevInbox Models
+
+model Project {
+  id          String   @id @default(uuid())
+  slug        String   @unique // e.g., "myproject" for myproject.devinbox.local
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  emails      Email[]
+
+  @@map("projects")
+}
+
+model Email {
+  id         String   @id @default(uuid())
+  projectId  String   @map("project_id")
+  from       String
+  to         String[] // Array of recipient addresses
+  subject    String?
+  bodyText   String?  @map("body_text")
+  bodyHtml   String?  @map("body_html")
+  headers    Json     // Store email headers as JSON
+  rawMime    String?  @map("raw_mime") // Full RFC822 content
+  receivedAt DateTime @default(now()) @map("received_at")
+  isRead     Boolean  @default(false) @map("is_read")
+
+  // Relations
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
+
+  @@map("emails")
+  @@index([projectId])
+  @@index([receivedAt])
+}
+
+model Attachment {
+  id          String @id @default(uuid())
+  emailId     String @map("email_id")
+  filename    String
+  contentType String @map("content_type")
+  size        Int
+  storagePath String @map("storage_path")
+
+  // Relations
+  email Email @relation(fields: [emailId], references: [id], onDelete: Cascade)
+
+  @@map("attachments")
+  @@index([emailId])
+}
