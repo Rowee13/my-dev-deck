@@ -49,3 +49,4 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+test-email.js

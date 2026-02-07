@@ -9,6 +9,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
+    "nodemailer": "^8.0.0",
     "prettier": "^3.6.0",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "turbo": "^2.6.0"
