@@ -20,6 +20,9 @@ export default function ProjectInboxPage() {
     const [emails, setEmails] = useState<Email[]>([]);
     const [loading, setLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalEmails, setTotalEmails] = useState(0);
+    const itemsPerPage = 20;
 
     useEffect(() => {
         if (projectId) {
@@ -32,7 +35,7 @@ export default function ProjectInboxPage() {
 
             return () => clearInterval(interval);
         }
-    }, [projectId]);
+    }, [projectId, currentPage]);
 
     const fetchEmails = async (silent = false) => {
         try {
@@ -40,10 +43,14 @@ export default function ProjectInboxPage() {
                 setIsRefreshing(true);
             }
 
+            const offset = (currentPage - 1) * itemsPerPage;
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-            const res = await fetch(`${apiUrl}/api/projects/${projectId}/emails`);
+            const res = await fetch(
+                `${apiUrl}/api/projects/${projectId}/emails?limit=${itemsPerPage}&offset=${offset}`
+            );
             const data = await res.json();
             setEmails(data.emails || []);
+            setTotalEmails(data.total || 0);
         } catch (error) {
             console.error("Error fetching emails:", error);
         } finally {
@@ -148,6 +155,82 @@ export default function ProjectInboxPage() {
                             </li>
                         ))}
                     </ul>
+                </div>
+            )}
+
+            {/* Pagination */}
+            {totalEmails > 0 && (
+                <div className="mt-6 flex items-center justify-between bg-white rounded-lg shadow px-6 py-4">
+                    <div className="text-sm text-gray-700">
+                        Showing{" "}
+                        <span className="font-medium">
+                            {Math.min((currentPage - 1) * itemsPerPage + 1, totalEmails)}
+                        </span>{" "}
+                        to{" "}
+                        <span className="font-medium">
+                            {Math.min(currentPage * itemsPerPage, totalEmails)}
+                        </span>{" "}
+                        of <span className="font-medium">{totalEmails}</span> emails
+                    </div>
+
+                    <div className="flex space-x-2">
+                        <button
+                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            Previous
+                        </button>
+
+                        <div className="flex items-center space-x-1">
+                            {Array.from(
+                                { length: Math.ceil(totalEmails / itemsPerPage) },
+                                (_, i) => i + 1
+                            )
+                                .filter((page) => {
+                                    // Show first page, last page, current page, and pages around current
+                                    const totalPages = Math.ceil(totalEmails / itemsPerPage);
+                                    return (
+                                        page === 1 ||
+                                        page === totalPages ||
+                                        Math.abs(page - currentPage) <= 1
+                                    );
+                                })
+                                .map((page, index, array) => {
+                                    // Add ellipsis if there's a gap
+                                    const showEllipsis = index > 0 && page - array[index - 1] > 1;
+                                    return (
+                                        <div key={page} className="flex items-center">
+                                            {showEllipsis && (
+                                                <span className="px-2 text-gray-500">...</span>
+                                            )}
+                                            <button
+                                                onClick={() => setCurrentPage(page)}
+                                                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                                                    currentPage === page
+                                                        ? "bg-blue-600 text-white"
+                                                        : "text-gray-700 hover:bg-gray-50 border border-gray-300"
+                                                }`}
+                                            >
+                                                {page}
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                        </div>
+
+                        <button
+                            onClick={() =>
+                                setCurrentPage((prev) =>
+                                    Math.min(prev + 1, Math.ceil(totalEmails / itemsPerPage))
+                                )
+                            }
+                            disabled={currentPage >= Math.ceil(totalEmails / itemsPerPage)}
+                            className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
             )}
         </div>
