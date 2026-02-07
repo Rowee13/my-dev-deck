@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { ProjectTabs } from "../../../../components/devinbox/ProjectTabs";
 
 interface Email {
     id: string;
@@ -96,6 +97,9 @@ export default function ProjectInboxPage() {
                     </div>
                 )}
             </div>
+
+            {/* Tabs */}
+            <ProjectTabs projectId={projectId} />
 
             {/* Email List */}
             {emails.length === 0 ? (
