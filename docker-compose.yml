@@ -27,15 +27,15 @@ services:
     container_name: devdeck-api
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "4000:4000"
       - "2525:2525"  # SMTP port for DevInbox
     environment:
       NODE_ENV: development
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/devdeck
-      PORT: 3000
+      PORT: 4000
       SMTP_PORT: 2525
       SMTP_DOMAIN: devinbox.local
-      CORS_ORIGINS: http://localhost:3001,http://localhost:3000
+      CORS_ORIGINS: http://localhost:4001,http://localhost:4000
     volumes:
       - ./apps/api:/app/apps/api
       - ./packages:/app/packages
@@ -55,10 +55,10 @@ services:
     container_name: devdeck-web
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      - "4001:4001"
     environment:
       NODE_ENV: development
-      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: http://localhost:4000
     volumes:
       - ./apps/web:/app/apps/web
       - ./packages:/app/packages
@@ -76,10 +76,10 @@ services:
     container_name: devdeck-docs
     restart: unless-stopped
     ports:
-      - "3002:3000"
+      - "4002:4002"
     environment:
       NODE_ENV: development
-      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: http://localhost:4000
     volumes:
       - ./apps/docs:/app/apps/docs
       - ./packages:/app/packages

@@ -8,9 +8,9 @@ This is a Turborepo-based monorepo using pnpm workspaces. The project combines N
 
 ### Apps
 
-- **apps/web**: Next.js application (port 3001)
-- **apps/docs**: Next.js documentation site (port 3000)
-- **apps/api**: NestJS REST API backend (port 3000 by default, configurable via PORT env var)
+- **apps/web**: Next.js application (port 4001)
+- **apps/docs**: Next.js documentation site (port 4002)
+- **apps/api**: NestJS REST API backend (port 4000 by default, configurable via PORT env var)
 
 ### Shared Packages
 
@@ -31,8 +31,8 @@ This is a Turborepo-based monorepo using pnpm workspaces. The project combines N
 pnpm dev
 
 # Run specific app
-pnpm --filter web dev        # Next.js web app (port 3001)
-pnpm --filter docs dev       # Next.js docs app (port 3000)
+pnpm --filter web dev        # Next.js web app (port 4001)
+pnpm --filter docs dev       # Next.js docs app (port 4002)
 pnpm --filter api start:dev  # NestJS API with watch mode
 
 # Run API in debug mode
@@ -99,7 +99,7 @@ pnpm --filter api test:debug
 - Use Next.js 16 App Router architecture
 - TypeScript build errors are ignored in config (`ignoreBuildErrors: true`)
 - Directly consume `@repo/ui` components via transpilePackages
-- Each runs on a different port (web: 3001, docs: 3000)
+- Each runs on a different port (web: 4001, docs: 4002)
 
 ### NestJS API (apps/api)
 
@@ -169,9 +169,9 @@ docker-compose down -v
 
 **Services:**
 - `postgres`: PostgreSQL 16 database on port 5432
-- `api`: NestJS backend on ports 3000 (HTTP) and 2525 (SMTP)
-- `web`: Next.js dashboard on port 3001
-- `docs`: Next.js documentation on port 3002 (optional, use `--profile full`)
+- `api`: NestJS backend on ports 4000 (HTTP) and 2525 (SMTP)
+- `web`: Next.js dashboard on port 4001
+- `docs`: Next.js documentation on port 4002 (optional, use `--profile full`)
 
 All development files are volume-mounted for hot reload.
 
