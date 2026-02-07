@@ -78,7 +78,9 @@ export class SmtpService implements OnModuleInit {
         return callback(new Error('Project not found'));
       }
 
-      this.logger.log(`Accepted recipient: ${address} for project: ${project.name}`);
+      this.logger.log(
+        `Accepted recipient: ${address} for project: ${project.name}`,
+      );
       callback();
     } catch (error) {
       this.logger.error('Error validating recipient:', error);
@@ -95,10 +97,16 @@ export class SmtpService implements OnModuleInit {
       // Parse the email
       const parsed: ParsedMail = await simpleParser(stream);
 
-      this.logger.log(`Received email: ${parsed.subject} from ${parsed.from?.text}`);
+      this.logger.log(
+        `Received email: ${parsed.subject} from ${parsed.from?.text}`,
+      );
 
       // Extract project slug from first recipient
-      const toValue = Array.isArray(parsed.to) ? parsed.to : parsed.to ? [parsed.to] : [];
+      const toValue = Array.isArray(parsed.to)
+        ? parsed.to
+        : parsed.to
+          ? [parsed.to]
+          : [];
       const firstRecipient = toValue[0]?.value?.[0]?.address || '';
       const domain = this.configService.get<string>(
         'SMTP_DOMAIN',

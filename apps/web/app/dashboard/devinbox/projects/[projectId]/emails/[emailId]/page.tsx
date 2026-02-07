@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -34,13 +34,28 @@ export default function EmailDetailPage() {
   const [viewMode, setViewMode] = useState<'html' | 'text'>('html');
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (projectId && emailId) {
-      fetchEmail();
+  const markAsRead = useCallback(async (isRead: boolean) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      await fetch(
+        `${apiUrl}/api/projects/${projectId}/emails/${emailId}/read`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ isRead }),
+        }
+      );
+      if (email) {
+        setEmail({ ...email, isRead });
+      }
+    } catch (error) {
+      console.error('Error marking email as read:', error);
     }
-  }, [projectId, emailId]);
+  }, [projectId, emailId, email]);
 
-  const fetchEmail = async () => {
+  const fetchEmail = useCallback(async () => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const res = await fetch(
@@ -64,28 +79,13 @@ export default function EmailDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId, emailId, markAsRead]);
 
-  const markAsRead = async (isRead: boolean) => {
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      await fetch(
-        `${apiUrl}/api/projects/${projectId}/emails/${emailId}/read`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ isRead }),
-        }
-      );
-      if (email) {
-        setEmail({ ...email, isRead });
-      }
-    } catch (error) {
-      console.error('Error marking email as read:', error);
+  useEffect(() => {
+    if (projectId && emailId) {
+      fetchEmail();
     }
-  };
+  }, [projectId, emailId, fetchEmail]);
 
   const deleteEmail = async () => {
     if (!confirm('Are you sure you want to delete this email?')) {

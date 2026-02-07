@@ -33,7 +33,11 @@ export class EmailsService {
   async saveEmail(projectId: string, parsed: ParsedMail) {
     try {
       // Extract recipients
-      const toValue = Array.isArray(parsed.to) ? parsed.to : parsed.to ? [parsed.to] : [];
+      const toValue = Array.isArray(parsed.to)
+        ? parsed.to
+        : parsed.to
+          ? [parsed.to]
+          : [];
       const toAddresses = toValue
         .flatMap((addr) => addr.value?.map((v) => v.address) || [])
         .filter((addr): addr is string => !!addr);
@@ -73,12 +77,14 @@ export class EmailsService {
     }
   }
 
-  private async saveAttachments(parsed: ParsedMail): Promise<Array<{
-    filename: string;
-    contentType: string;
-    size: number;
-    storagePath: string;
-  }>> {
+  private async saveAttachments(parsed: ParsedMail): Promise<
+    Array<{
+      filename: string;
+      contentType: string;
+      size: number;
+      storagePath: string;
+    }>
+  > {
     if (!parsed.attachments || parsed.attachments.length === 0) {
       return [];
     }
@@ -104,7 +110,10 @@ export class EmailsService {
           storagePath: filepath,
         });
       } catch (error) {
-        this.logger.error(`Error saving attachment ${attachment.filename}:`, error);
+        this.logger.error(
+          `Error saving attachment ${attachment.filename}:`,
+          error,
+        );
       }
     }
 
@@ -196,7 +205,9 @@ export class EmailsService {
       try {
         await fs.promises.unlink(attachment.storagePath);
       } catch (error) {
-        this.logger.warn(`Failed to delete attachment file: ${attachment.storagePath}`);
+        this.logger.warn(
+          `Failed to delete attachment file: ${attachment.storagePath}`,
+        );
       }
     }
 

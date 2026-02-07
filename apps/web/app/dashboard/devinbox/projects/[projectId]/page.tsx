@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ProjectTabs } from "../../../../../components/devinbox/ProjectTabs";
@@ -24,20 +24,7 @@ export default function ProjectInboxPage() {
     const [totalEmails, setTotalEmails] = useState(0);
     const itemsPerPage = 20;
 
-    useEffect(() => {
-        if (projectId) {
-            fetchEmails();
-
-            // Auto-refresh every 10 seconds
-            const interval = setInterval(() => {
-                fetchEmails(true); // Silent refresh
-            }, 10000);
-
-            return () => clearInterval(interval);
-        }
-    }, [projectId, currentPage]);
-
-    const fetchEmails = async (silent = false) => {
+    const fetchEmails = useCallback(async (silent = false) => {
         try {
             if (silent) {
                 setIsRefreshing(true);
@@ -59,7 +46,20 @@ export default function ProjectInboxPage() {
                 setIsRefreshing(false);
             }
         }
-    };
+    }, [projectId, currentPage, itemsPerPage]);
+
+    useEffect(() => {
+        if (projectId) {
+            fetchEmails();
+
+            // Auto-refresh every 10 seconds
+            const interval = setInterval(() => {
+                fetchEmails(true); // Silent refresh
+            }, 10000);
+
+            return () => clearInterval(interval);
+        }
+    }, [projectId, currentPage, fetchEmails]);
 
     if (loading) {
         return (
@@ -114,7 +114,7 @@ export default function ProjectInboxPage() {
                     <span className="text-6xl mb-4 block">📬</span>
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">No emails yet</h3>
                     <p className="text-gray-600 mb-6">
-                        Send an email to this project's address to see it appear here
+                        Send an email to this project&apos;s address to see it appear here
                     </p>
                 </div>
             ) : (
