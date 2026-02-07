@@ -27,8 +27,9 @@ export default function ProjectInboxPage() {
 
   const fetchEmails = async () => {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const res = await fetch(
-        `http://localhost:3000/api/projects/${projectId}/emails`
+        `${apiUrl}/api/projects/${projectId}/emails`
       );
       const data = await res.json();
       setEmails(data.emails || []);

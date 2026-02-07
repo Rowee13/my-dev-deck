@@ -24,7 +24,8 @@ export default function DevInboxPage() {
 
   const fetchProjects = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/projects');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const res = await fetch(`${apiUrl}/api/projects`);
       const data = await res.json();
       setProjects(data);
     } catch (error) {
