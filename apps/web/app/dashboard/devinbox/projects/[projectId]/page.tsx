@@ -77,9 +77,12 @@ export default function ProjectInboxPage() {
             {emails.map((email) => (
               <li
                 key={email.id}
-                className={`hover:bg-gray-50 transition-colors ${
+                className={`hover:bg-gray-50 transition-colors cursor-pointer ${
                   !email.isRead ? 'bg-blue-50' : ''
                 }`}
+                onClick={() =>
+                  (window.location.href = `/dashboard/devinbox/projects/${projectId}/emails/${email.id}`)
+                }
               >
                 <div className="px-6 py-4">
                   <div className="flex items-center justify-between">

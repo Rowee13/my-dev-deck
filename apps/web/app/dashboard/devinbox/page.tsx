@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { CreateProjectModal } from '../../../components/devinbox/CreateProjectModal';
 
 interface Project {
   id: string;
@@ -17,6 +18,7 @@ interface Project {
 export default function DevInboxPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchProjects();
@@ -47,7 +49,10 @@ export default function DevInboxPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">DevInbox</h1>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        >
           + New Project
         </button>
       </div>
@@ -66,7 +71,10 @@ export default function DevInboxPage() {
           <p className="text-gray-600 mb-6">
             Create your first project to start receiving test emails
           </p>
-          <button className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
             Create First Project
           </button>
         </div>
@@ -103,6 +111,13 @@ export default function DevInboxPage() {
           ))}
         </div>
       )}
+
+      {/* Create Project Modal */}
+      <CreateProjectModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchProjects}
+      />
     </div>
   );
 }
