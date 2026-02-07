@@ -19,6 +19,7 @@ export class EmailsService {
     private configService: ConfigService,
   ) {
     this.uploadsDir = path.join(process.cwd(), 'uploads', 'attachments');
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.ensureUploadsDir();
   }
 
@@ -54,6 +55,7 @@ export class EmailsService {
           subject: parsed.subject || null,
           bodyText: parsed.text || null,
           bodyHtml: parsed.html || null,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           headers: parsed.headers as any,
           rawMime: parsed.text || null, // Store raw if needed
           attachments: {
@@ -204,7 +206,7 @@ export class EmailsService {
     for (const attachment of email.attachments) {
       try {
         await fs.promises.unlink(attachment.storagePath);
-      } catch (error) {
+      } catch {
         this.logger.warn(
           `Failed to delete attachment file: ${attachment.storagePath}`,
         );

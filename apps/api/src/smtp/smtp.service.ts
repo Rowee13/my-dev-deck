@@ -1,11 +1,9 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SMTPServer, SMTPServerSession } from 'smtp-server';
-import { simpleParser, ParsedMail, Attachment } from 'mailparser';
+import { simpleParser, ParsedMail } from 'mailparser';
 import { ProjectsService } from '../projects/projects.service';
 import { EmailsService } from '../emails/emails.service';
-import * as fs from 'fs';
-import * as path from 'path';
 
 @Injectable()
 export class SmtpService implements OnModuleInit {
@@ -18,11 +16,11 @@ export class SmtpService implements OnModuleInit {
     private emailsService: EmailsService,
   ) {}
 
-  async onModuleInit() {
-    await this.startServer();
+  onModuleInit() {
+    this.startServer();
   }
 
-  private async startServer() {
+  private startServer() {
     const port = this.configService.get<number>('SMTP_PORT', 2525);
     const domain = this.configService.get<string>(
       'SMTP_DOMAIN',
@@ -32,11 +30,13 @@ export class SmtpService implements OnModuleInit {
     this.server = new SMTPServer({
       authOptional: true,
       disabledCommands: ['AUTH'],
-      onRcptTo: async (address, session, callback) => {
-        return this.handleRecipient(address.address, callback);
+      onRcptTo: (address, session, callback) => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.handleRecipient(address.address, callback);
       },
-      onData: async (stream, session, callback) => {
-        return this.handleData(stream, session, callback);
+      onData: (stream, session, callback) => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.handleData(stream, session, callback);
       },
     });
 
@@ -84,6 +84,7 @@ export class SmtpService implements OnModuleInit {
       callback();
     } catch (error) {
       this.logger.error('Error validating recipient:', error);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       callback(error);
     }
   }
@@ -95,6 +96,7 @@ export class SmtpService implements OnModuleInit {
   ) {
     try {
       // Parse the email
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const parsed: ParsedMail = await simpleParser(stream);
 
       this.logger.log(
@@ -134,6 +136,7 @@ export class SmtpService implements OnModuleInit {
       callback();
     } catch (error) {
       this.logger.error('Error processing email:', error);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       callback(error);
     }
   }

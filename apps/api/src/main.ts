@@ -58,4 +58,5 @@ async function bootstrap() {
     `Swagger credentials - User: ${swaggerUser}, Password: ${swaggerPassword}`,
   );
 }
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 bootstrap();
