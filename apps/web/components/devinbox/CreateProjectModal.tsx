@@ -112,7 +112,7 @@ export function CreateProjectModal({
             id="name"
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
             placeholder="My Awesome Project"
             required
             disabled={loading}
@@ -132,7 +132,7 @@ export function CreateProjectModal({
             id="slug"
             value={slug}
             onChange={(e) => handleSlugChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm text-gray-900"
             placeholder="my-awesome-project"
             required
             disabled={loading}
@@ -155,7 +155,7 @@ export function CreateProjectModal({
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
             placeholder="Brief description of this project"
             rows={3}
             disabled={loading}
