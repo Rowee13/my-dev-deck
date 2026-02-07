@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ProjectTabs } from '../../../../../components/devinbox/ProjectTabs';
+import { ProjectTabs } from '../../../../../../components/devinbox/ProjectTabs';
 
 interface Project {
   id: string;
