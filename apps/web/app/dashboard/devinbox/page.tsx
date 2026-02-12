@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CreateProjectModal } from '../../../components/devinbox/CreateProjectModal';
+import { apiRequest } from '../../../lib/api';
 
 interface Project {
   id: string;
@@ -26,8 +27,7 @@ export default function DevInboxPage() {
 
   const fetchProjects = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const res = await fetch(`${apiUrl}/api/projects`);
+      const res = await apiRequest('/api/projects');
       const data = await res.json();
       setProjects(data);
     } catch (error) {
@@ -43,8 +43,7 @@ export default function DevInboxPage() {
     }
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const res = await fetch(`${apiUrl}/api/projects/${projectId}`, {
+      const res = await apiRequest(`/api/projects/${projectId}`, {
         method: 'DELETE',
       });
 

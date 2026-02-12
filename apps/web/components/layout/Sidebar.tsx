@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '../../contexts/AuthContext';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: '📊' },
+  { name: 'Settings', href: '/dashboard/settings', icon: '⚙️' },
 ];
 
 const tools = [
@@ -13,12 +15,21 @@ const tools = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
 
   const isActive = (href: string) => {
     if (href === '/dashboard') {
       return pathname === href;
     }
     return pathname?.startsWith(href);
+  };
+
+  const handleLogout = async () => {
+    if (confirm('Are you sure you want to logout?')) {
+      await logout();
+      router.push('/login');
+    }
   };
 
   return (
@@ -72,7 +83,17 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="p-4 border-t border-gray-800">
-        <p className="text-xs text-gray-400">DevDeck v1.0</p>
+        <div className="mb-2">
+          <p className="text-xs text-gray-400">Logged in as:</p>
+          <p className="text-sm text-gray-200 truncate">{user?.email}</p>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="w-full px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 rounded-md transition-colors"
+        >
+          Logout
+        </button>
+        <p className="text-xs text-gray-400 mt-2">DevDeck v1.0</p>
       </div>
     </div>
   );

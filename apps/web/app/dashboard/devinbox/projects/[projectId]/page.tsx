@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ProjectTabs } from "../../../../../components/devinbox/ProjectTabs";
+import { apiRequest } from "../../../../../lib/api";
 
 interface Email {
     id: string;
@@ -31,9 +32,8 @@ export default function ProjectInboxPage() {
             }
 
             const offset = (currentPage - 1) * itemsPerPage;
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-            const res = await fetch(
-                `${apiUrl}/api/projects/${projectId}/emails?limit=${itemsPerPage}&offset=${offset}`
+            const res = await apiRequest(
+                `/api/projects/${projectId}/emails?limit=${itemsPerPage}&offset=${offset}`
             );
             const data = await res.json();
             setEmails(data.emails || []);

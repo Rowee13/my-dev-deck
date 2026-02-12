@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { apiRequest } from '../../../../../../lib/api';
 
 interface Attachment {
   id: string;
@@ -36,14 +37,10 @@ export default function EmailDetailPage() {
 
   const markAsRead = useCallback(async (isRead: boolean) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      await fetch(
-        `${apiUrl}/api/projects/${projectId}/emails/${emailId}/read`,
+      await apiRequest(
+        `/api/projects/${projectId}/emails/${emailId}/read`,
         {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
           body: JSON.stringify({ isRead }),
         }
       );
@@ -57,9 +54,8 @@ export default function EmailDetailPage() {
 
   const fetchEmail = useCallback(async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const res = await fetch(
-        `${apiUrl}/api/projects/${projectId}/emails/${emailId}`
+      const res = await apiRequest(
+        `/api/projects/${projectId}/emails/${emailId}`
       );
 
       if (!res.ok) {
@@ -93,9 +89,8 @@ export default function EmailDetailPage() {
     }
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const res = await fetch(
-        `${apiUrl}/api/projects/${projectId}/emails/${emailId}`,
+      const res = await apiRequest(
+        `/api/projects/${projectId}/emails/${emailId}`,
         {
           method: 'DELETE',
         }

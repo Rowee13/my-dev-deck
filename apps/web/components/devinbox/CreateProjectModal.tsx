@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Modal } from '../ui/Modal';
+import { apiRequest } from '../../lib/api';
 
 interface CreateProjectModalProps {
   isOpen: boolean;
@@ -46,12 +47,8 @@ export function CreateProjectModal({
     setLoading(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const res = await fetch(`${apiUrl}/api/projects`, {
+      const res = await apiRequest('/api/projects', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           name,
           slug,
