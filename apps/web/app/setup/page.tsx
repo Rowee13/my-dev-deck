@@ -63,8 +63,8 @@ export default function SetupPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to DevInbox</h1>
-        <p className="text-gray-600 mb-6">Create your account to get started</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to My Dev Deck</h1>
+        <p className="text-gray-600 mb-6">Create your account to access developer tools like DevInbox</p>
 
         <form onSubmit={handleSubmit}>
           {error && (
