@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { randomUUID } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
@@ -127,7 +127,7 @@ export class AuthService {
    */
   async refreshTokens(refreshToken: string) {
     // Hash the incoming token to compare with stored hash
-    const hashedToken = await this.hashRefreshToken(refreshToken);
+    const hashedToken = this.hashRefreshToken(refreshToken);
 
     // Find the refresh token in database
     const storedToken = await this.prisma.refreshToken.findUnique({
@@ -179,7 +179,7 @@ export class AuthService {
    * Revoke a refresh token (logout)
    */
   async revokeRefreshToken(refreshToken: string) {
-    const hashedToken = await this.hashRefreshToken(refreshToken);
+    const hashedToken = this.hashRefreshToken(refreshToken);
 
     const storedToken = await this.prisma.refreshToken.findUnique({
       where: { token: hashedToken },
@@ -280,7 +280,7 @@ export class AuthService {
    */
   private async generateRefreshToken(userId: string): Promise<string> {
     const token = randomUUID();
-    const hashedToken = await this.hashRefreshToken(token);
+    const hashedToken = this.hashRefreshToken(token);
 
     const expiresInDays = this.parseExpirationToDays(
       this.config.get('JWT_REFRESH_EXPIRATION'),
@@ -310,11 +310,10 @@ export class AuthService {
   }
 
   /**
-   * Hash refresh token using bcrypt
+   * Hash refresh token using SHA-256 (deterministic hashing for token lookup)
    */
-  private async hashRefreshToken(token: string): Promise<string> {
-    const saltRounds = 10;
-    return bcrypt.hash(token, saltRounds);
+  private hashRefreshToken(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
   }
 
   /**
