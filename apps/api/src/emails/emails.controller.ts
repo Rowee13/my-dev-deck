@@ -8,6 +8,7 @@ import {
   Body,
   Res,
   StreamableFile,
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,12 +16,14 @@ import {
   ApiResponse,
   ApiParam,
   ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { EmailsService } from './emails.service';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import * as fs from 'fs';
 
 @ApiTags('emails')
+@ApiBearerAuth()
 @Controller('api/projects/:projectId/emails')
 export class EmailsController {
   constructor(private readonly emailsService: EmailsService) {}
@@ -45,11 +48,14 @@ export class EmailsController {
     description: 'Returns paginated emails',
   })
   findAll(
+    @Req() req: Request,
     @Param('projectId') projectId: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
+    const userId = req.user!['id'];
     return this.emailsService.findAllByProject(
+      userId,
       projectId,
       limit ? parseInt(limit) : undefined,
       offset ? parseInt(offset) : undefined,
@@ -69,10 +75,12 @@ export class EmailsController {
     description: 'Email not found',
   })
   findOne(
+    @Req() req: Request,
     @Param('projectId') projectId: string,
     @Param('emailId') emailId: string,
   ) {
-    return this.emailsService.findOne(projectId, emailId);
+    const userId = req.user!['id'];
+    return this.emailsService.findOne(userId, projectId, emailId);
   }
 
   @Patch(':emailId/read')
@@ -88,11 +96,13 @@ export class EmailsController {
     description: 'Email not found',
   })
   markAsRead(
+    @Req() req: Request,
     @Param('projectId') projectId: string,
     @Param('emailId') emailId: string,
     @Body('isRead') isRead: boolean,
   ) {
-    return this.emailsService.markAsRead(projectId, emailId, isRead);
+    const userId = req.user!['id'];
+    return this.emailsService.markAsRead(userId, projectId, emailId, isRead);
   }
 
   @Delete(':emailId')
@@ -108,10 +118,12 @@ export class EmailsController {
     description: 'Email not found',
   })
   remove(
+    @Req() req: Request,
     @Param('projectId') projectId: string,
     @Param('emailId') emailId: string,
   ) {
-    return this.emailsService.remove(projectId, emailId);
+    const userId = req.user!['id'];
+    return this.emailsService.remove(userId, projectId, emailId);
   }
 
   @Get(':emailId/attachments/:attachmentId')
@@ -128,10 +140,13 @@ export class EmailsController {
     description: 'Attachment not found',
   })
   async downloadAttachment(
+    @Req() req: Request,
+    @Param('projectId') projectId: string,
     @Param('attachmentId') attachmentId: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const attachment = await this.emailsService.getAttachment(attachmentId);
+    const userId = req.user!['id'];
+    const attachment = await this.emailsService.getAttachment(userId, projectId, attachmentId);
 
     const file = fs.createReadStream(attachment.storagePath);
 

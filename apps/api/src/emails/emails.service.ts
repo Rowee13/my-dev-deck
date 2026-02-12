@@ -123,10 +123,14 @@ export class EmailsService {
   }
 
   async findAllByProject(
+    userId: string,
     projectId: string,
     limit: number = 50,
     offset: number = 0,
   ) {
+    // Verify project ownership
+    await this.verifyProjectOwnership(userId, projectId);
+
     const emails = await this.prisma.email.findMany({
       where: { projectId },
       orderBy: { receivedAt: 'desc' },
@@ -151,7 +155,10 @@ export class EmailsService {
     };
   }
 
-  async findOne(projectId: string, emailId: string) {
+  async findOne(userId: string, projectId: string, emailId: string) {
+    // Verify project ownership
+    await this.verifyProjectOwnership(userId, projectId);
+
     const email = await this.prisma.email.findFirst({
       where: {
         id: emailId,
@@ -169,7 +176,10 @@ export class EmailsService {
     return email;
   }
 
-  async markAsRead(projectId: string, emailId: string, isRead: boolean) {
+  async markAsRead(userId: string, projectId: string, emailId: string, isRead: boolean) {
+    // Verify project ownership
+    await this.verifyProjectOwnership(userId, projectId);
+
     const email = await this.prisma.email.findFirst({
       where: {
         id: emailId,
@@ -187,7 +197,10 @@ export class EmailsService {
     });
   }
 
-  async remove(projectId: string, emailId: string) {
+  async remove(userId: string, projectId: string, emailId: string) {
+    // Verify project ownership
+    await this.verifyProjectOwnership(userId, projectId);
+
     const email = await this.prisma.email.findFirst({
       where: {
         id: emailId,
@@ -220,15 +233,41 @@ export class EmailsService {
     return { message: 'Email deleted successfully' };
   }
 
-  async getAttachment(attachmentId: string) {
+  async getAttachment(userId: string, projectId: string, attachmentId: string) {
+    // Verify project ownership
+    await this.verifyProjectOwnership(userId, projectId);
+
     const attachment = await this.prisma.attachment.findUnique({
       where: { id: attachmentId },
+      include: {
+        email: true,
+      },
     });
 
     if (!attachment) {
       throw new NotFoundException('Attachment not found');
     }
 
+    // Verify attachment belongs to the project
+    if (attachment.email.projectId !== projectId) {
+      throw new NotFoundException('Attachment not found');
+    }
+
     return attachment;
+  }
+
+  /**
+   * Verify that the user owns the project
+   */
+  private async verifyProjectOwnership(userId: string, projectId: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, userId },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    return project;
   }
 }

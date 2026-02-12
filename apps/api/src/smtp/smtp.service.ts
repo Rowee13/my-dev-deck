@@ -71,7 +71,7 @@ export class SmtpService implements OnModuleInit {
       }
 
       const projectSlug = match[1];
-      const project = await this.projectsService.findBySlug(projectSlug);
+      const project = await this.projectsService.findBySlugPublic(projectSlug);
 
       if (!project) {
         this.logger.warn(`Project not found for slug: ${projectSlug}`);
@@ -123,7 +123,7 @@ export class SmtpService implements OnModuleInit {
       }
 
       const projectSlug = match[1];
-      const project = await this.projectsService.findBySlug(projectSlug);
+      const project = await this.projectsService.findBySlugPublic(projectSlug);
 
       if (!project) {
         return callback(new Error('Project not found'));

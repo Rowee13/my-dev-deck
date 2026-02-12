@@ -1,10 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { EmailsModule } from './emails/emails.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProjectsModule } from './projects/projects.module';
-import { EmailsModule } from './emails/emails.module';
 import { SmtpModule } from './smtp/smtp.module';
 
 @Module({
@@ -14,11 +17,18 @@ import { SmtpModule } from './smtp/smtp.module';
       envFilePath: '.env',
     }),
     PrismaModule,
+    AuthModule,
     ProjectsModule,
     EmailsModule,
     SmtpModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule {}

@@ -40,8 +40,10 @@ async function bootstrap() {
     .setTitle('DevInbox API')
     .setDescription('DevInbox - Email testing tool for developers')
     .setVersion('1.0')
+    .addTag('auth', 'Authentication endpoints')
     .addTag('projects', 'Project management endpoints')
     .addTag('emails', 'Email retrieval endpoints')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

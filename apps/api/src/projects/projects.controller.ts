@@ -10,6 +10,7 @@ import {
   UsePipes,
   HttpCode,
   HttpStatus,
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,12 +18,15 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
+import { Request } from 'express';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 
 @ApiTags('projects')
+@ApiBearerAuth()
 @Controller('api/projects')
 @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 export class ProjectsController {
@@ -44,8 +48,9 @@ export class ProjectsController {
     status: 409,
     description: 'Project with this slug already exists',
   })
-  create(@Body() createProjectDto: CreateProjectDto) {
-    return this.projectsService.create(createProjectDto);
+  create(@Req() req: Request, @Body() createProjectDto: CreateProjectDto) {
+    const userId = req.user!['id'];
+    return this.projectsService.create(userId, createProjectDto);
   }
 
   @Get()
@@ -54,8 +59,9 @@ export class ProjectsController {
     status: 200,
     description: 'Returns all projects with email counts',
   })
-  findAll() {
-    return this.projectsService.findAll();
+  findAll(@Req() req: Request) {
+    const userId = req.user!['id'];
+    return this.projectsService.findAll(userId);
   }
 
   @Get(':id')
@@ -69,8 +75,9 @@ export class ProjectsController {
     status: 404,
     description: 'Project not found',
   })
-  findOne(@Param('id') id: string) {
-    return this.projectsService.findOne(id);
+  findOne(@Req() req: Request, @Param('id') id: string) {
+    const userId = req.user!['id'];
+    return this.projectsService.findOne(userId, id);
   }
 
   @Patch(':id')
@@ -85,8 +92,9 @@ export class ProjectsController {
     status: 404,
     description: 'Project not found',
   })
-  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-    return this.projectsService.update(id, updateProjectDto);
+  update(@Req() req: Request, @Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
+    const userId = req.user!['id'];
+    return this.projectsService.update(userId, id, updateProjectDto);
   }
 
   @Delete(':id')
@@ -101,7 +109,8 @@ export class ProjectsController {
     status: 404,
     description: 'Project not found',
   })
-  remove(@Param('id') id: string) {
-    return this.projectsService.remove(id);
+  remove(@Req() req: Request, @Param('id') id: string) {
+    const userId = req.user!['id'];
+    return this.projectsService.remove(userId, id);
   }
 }

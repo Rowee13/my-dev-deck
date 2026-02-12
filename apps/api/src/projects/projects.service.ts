@@ -12,10 +12,11 @@ import { Prisma } from '@prisma/client';
 export class ProjectsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createProjectDto: CreateProjectDto) {
+  async create(userId: string, createProjectDto: CreateProjectDto) {
     try {
       const project = await this.prisma.project.create({
         data: {
+          userId,
           name: createProjectDto.name,
           slug: createProjectDto.slug.toLowerCase(),
           description: createProjectDto.description,
@@ -36,8 +37,9 @@ export class ProjectsService {
     }
   }
 
-  async findAll() {
+  async findAll(userId: string) {
     const projects = await this.prisma.project.findMany({
+      where: { userId },
       orderBy: { createdAt: 'desc' },
       include: {
         _count: {
@@ -49,9 +51,9 @@ export class ProjectsService {
     return projects;
   }
 
-  async findOne(id: string) {
-    const project = await this.prisma.project.findUnique({
-      where: { id },
+  async findOne(userId: string, id: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { id, userId },
       include: {
         _count: {
           select: { emails: true },
@@ -66,7 +68,18 @@ export class ProjectsService {
     return project;
   }
 
-  async findBySlug(slug: string) {
+  async findBySlug(userId: string, slug: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { slug: slug.toLowerCase(), userId },
+    });
+
+    return project;
+  }
+
+  /**
+   * Find project by slug without user verification (for SMTP server)
+   */
+  async findBySlugPublic(slug: string) {
     const project = await this.prisma.project.findUnique({
       where: { slug: slug.toLowerCase() },
     });
@@ -74,7 +87,10 @@ export class ProjectsService {
     return project;
   }
 
-  async update(id: string, updateProjectDto: UpdateProjectDto) {
+  async update(userId: string, id: string, updateProjectDto: UpdateProjectDto) {
+    // Verify ownership first
+    await this.findOne(userId, id);
+
     try {
       const project = await this.prisma.project.update({
         where: { id },
@@ -93,7 +109,10 @@ export class ProjectsService {
     }
   }
 
-  async remove(id: string) {
+  async remove(userId: string, id: string) {
+    // Verify ownership first
+    await this.findOne(userId, id);
+
     try {
       await this.prisma.project.delete({
         where: { id },
