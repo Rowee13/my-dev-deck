@@ -49,4 +49,7 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Test scripts (contain credentials - do not commit)
+test-*.js
 test-email.js
