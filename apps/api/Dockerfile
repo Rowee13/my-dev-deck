@@ -16,7 +16,8 @@ FROM base AS build
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 RUN pnpm install --frozen-lockfile
-RUN cd apps/api && npx prisma generate
+# Generate Prisma client with dummy DATABASE_URL (only needed for generation, not actual connection)
+RUN cd apps/api && DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
 # Build the NestJS application
 RUN cd apps/api && npx nest build
 
