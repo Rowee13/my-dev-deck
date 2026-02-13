@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { apiRequest } from '../../../../../../lib/api';
+import { apiRequest } from '@/lib/api';
 
 interface Attachment {
   id: string;
