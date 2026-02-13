@@ -28,6 +28,8 @@ CMD ["pnpm", "--filter", "web", "dev"]
 FROM base AS build
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
+# Install all dependencies including workspace dependencies
+RUN pnpm install --frozen-lockfile
 RUN pnpm --filter web build
 
 # Production stage
