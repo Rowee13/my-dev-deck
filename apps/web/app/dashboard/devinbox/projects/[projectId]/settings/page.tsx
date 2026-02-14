@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ProjectTabs } from "../../../../../../components/devinbox/ProjectTabs";
+import { ProjectTabs } from "@/components/devinbox/ProjectTabs";
+import { apiRequest } from "@/lib/api";
 
 interface Project {
     id: string;
@@ -39,8 +40,7 @@ export default function ProjectSettingsPage() {
 
     const fetchProject = async () => {
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-            const res = await fetch(`${apiUrl}/api/projects/${projectId}`);
+            const res = await apiRequest(`/api/projects/${projectId}`);
 
             if (!res.ok) {
                 throw new Error("Failed to fetch project");
@@ -63,12 +63,8 @@ export default function ProjectSettingsPage() {
         setError("");
 
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-            const res = await fetch(`${apiUrl}/api/projects/${projectId}`, {
+            const res = await apiRequest(`/api/projects/${projectId}`, {
                 method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                },
                 body: JSON.stringify({
                     name,
                     description: description || undefined,
@@ -102,8 +98,7 @@ export default function ProjectSettingsPage() {
         }
 
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-            const res = await fetch(`${apiUrl}/api/projects/${projectId}`, {
+            const res = await apiRequest(`/api/projects/${projectId}`, {
                 method: "DELETE",
             });
 
