@@ -123,8 +123,8 @@ export default function DevInboxPage() {
 
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <p className="text-xs text-gray-500 mb-1">Email address:</p>
-                  <code className="text-sm bg-gray-100 px-2 py-1 rounded block truncate">
-                    *@{project.slug}.devinbox.local
+                  <code className="text-sm bg-gray-100 text-gray-900 px-2 py-1 rounded block truncate">
+                    *@{project.slug}.{process.env.NEXT_PUBLIC_DEVINBOX_DOMAIN || 'devinbox.local'}
                   </code>
                 </div>
               </Link>

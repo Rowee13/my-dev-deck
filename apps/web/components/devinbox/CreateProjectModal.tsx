@@ -136,7 +136,7 @@ export function CreateProjectModal({
             pattern="[a-z0-9-]+"
           />
           <p className="mt-1 text-xs text-gray-500">
-            Emails will be sent to: *@{slug || 'your-slug'}.devinbox.local
+            Emails will be sent to: *@{slug || 'your-slug'}.{process.env.NEXT_PUBLIC_DEVINBOX_DOMAIN || 'devinbox.local'}
           </p>
         </div>
 

@@ -164,10 +164,10 @@ export default function ProjectSettingsPage() {
                     </p>
                     <div className="flex items-center space-x-3 mb-4">
                         <code className="flex-1 text-lg bg-gray-100 text-zinc-900 px-4 py-3 rounded-md font-mono">
-                            @{project.slug}.devinbox.local
+                            @{project.slug}.{process.env.NEXT_PUBLIC_DEVINBOX_DOMAIN || 'devinbox.local'}
                         </code>
                         <button
-                            onClick={() => copyToClipboard(`@${project.slug}.devinbox.local`)}
+                            onClick={() => copyToClipboard(`@${project.slug}.${process.env.NEXT_PUBLIC_DEVINBOX_DOMAIN || 'devinbox.local'}`)}
                             className="px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                         >
                             Copy
@@ -179,9 +179,9 @@ export default function ProjectSettingsPage() {
                             inbox:
                         </p>
                         <ul className="text-sm text-blue-800 space-y-1 ml-4">
-                            <li>✓ test@{project.slug}.devinbox.local</li>
-                            <li>✓ admin@{project.slug}.devinbox.local</li>
-                            <li>✓ hello@{project.slug}.devinbox.local</li>
+                            <li>✓ test@{project.slug}.{process.env.NEXT_PUBLIC_DEVINBOX_DOMAIN || 'devinbox.local'}</li>
+                            <li>✓ admin@{project.slug}.{process.env.NEXT_PUBLIC_DEVINBOX_DOMAIN || 'devinbox.local'}</li>
+                            <li>✓ hello@{project.slug}.{process.env.NEXT_PUBLIC_DEVINBOX_DOMAIN || 'devinbox.local'}</li>
                         </ul>
                     </div>
                 </section>
