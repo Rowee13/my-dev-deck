@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import Cookies from 'js-cookie';
+import { getTimeUntilExpiration, isTokenExpired } from '../lib/jwt-utils';
 
 interface User {
   id: string;
@@ -24,8 +25,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshTimer, setRefreshTimer] = useState<NodeJS.Timeout | null>(null);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+  /**
+   * Schedule proactive token refresh
+   * Refreshes token 5 minutes before expiration to prevent 401 errors
+   */
+  const scheduleTokenRefresh = useCallback((token: string) => {
+    // Clear any existing timer
+    if (refreshTimer) {
+      clearTimeout(refreshTimer);
+    }
+
+    const timeUntilExpiration = getTimeUntilExpiration(token);
+    const REFRESH_BUFFER = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const refreshIn = Math.max(0, timeUntilExpiration - REFRESH_BUFFER);
+
+    console.log(`[Auth] Scheduling token refresh in ${Math.floor(refreshIn / 1000)}s`);
+
+    const timer = setTimeout(async () => {
+      console.log('[Auth] Proactive token refresh triggered');
+      try {
+        await refreshAuth();
+      } catch (error) {
+        console.error('[Auth] Scheduled refresh failed:', error);
+        // Error will be handled when user makes next API call (reactive refresh)
+      }
+    }, refreshIn);
+
+    setRefreshTimer(timer);
+  }, [refreshTimer]);
 
   // Check if user is authenticated
   const checkAuth = useCallback(async () => {
@@ -34,6 +65,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!token) {
       setLoading(false);
       return;
+    }
+
+    // Check if token is already expired
+    if (isTokenExpired(token)) {
+      console.log('[Auth] Token expired, attempting refresh...');
+      try {
+        await refreshAuth();
+      } catch (error) {
+        console.error('[Auth] Token expired, refresh failed:', error);
+        Cookies.remove('accessToken');
+        Cookies.remove('refreshToken');
+        setLoading(false);
+        return;
+      }
     }
 
     try {
@@ -47,18 +92,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData = await res.json();
         setUser(userData);
         setAccessToken(token);
+
+        // Schedule proactive refresh
+        scheduleTokenRefresh(token);
       } else {
         // Try to refresh
         await refreshAuth();
       }
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error('[Auth] Auth check failed:', error);
       Cookies.remove('accessToken');
       Cookies.remove('refreshToken');
     } finally {
       setLoading(false);
     }
-  }, [apiUrl]);
+  }, [apiUrl, scheduleTokenRefresh]);
 
   // Load user on mount
   useEffect(() => {
@@ -86,10 +134,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setAccessToken(accessToken);
     setUser(user);
+
+    // Schedule proactive refresh
+    scheduleTokenRefresh(accessToken);
   };
 
   // Logout
   const logout = async () => {
+    // Clear refresh timer
+    if (refreshTimer) {
+      clearTimeout(refreshTimer);
+      setRefreshTimer(null);
+    }
+
     const refreshToken = Cookies.get('refreshToken');
 
     if (refreshToken) {
@@ -103,7 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify({ refreshToken }),
         });
       } catch (error) {
-        console.error('Logout request failed:', error);
+        console.error('[Auth] Logout request failed:', error);
       }
     }
 
@@ -142,7 +199,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setAccessToken(newAccessToken);
     setUser(user);
+
+    // Schedule next refresh
+    scheduleTokenRefresh(newAccessToken);
   };
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (refreshTimer) {
+        clearTimeout(refreshTimer);
+      }
+    };
+  }, [refreshTimer]);
 
   return (
     <AuthContext.Provider value={{ user, accessToken, loading, login, logout, refreshAuth }}>
