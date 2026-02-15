@@ -6,6 +6,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useRef,
   ReactNode,
 } from 'react';
 import Cookies from 'js-cookie';
@@ -28,7 +29,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [refreshTimer, setRefreshTimer] = useState<NodeJS.Timeout | null>(null);
+  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -36,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * Get token metadata from cookie
    * This cookie is NOT httpOnly so JavaScript can read it
    */
-  const getTokenMetadata = useCallback(() => {
+  const getTokenMetadata = () => {
     const metaStr = Cookies.get('tokenMeta');
     if (!metaStr) return null;
 
@@ -45,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       return null;
     }
-  }, []);
+  };
 
   /**
    * Schedule proactive token refresh
@@ -53,8 +54,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    */
   const scheduleTokenRefresh = useCallback(() => {
     // Clear any existing timer
-    if (refreshTimer) {
-      clearTimeout(refreshTimer);
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current);
     }
 
     const tokenMeta = getTokenMetadata();
@@ -69,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       `[Auth] Scheduling token refresh in ${Math.floor(refreshIn / 1000)}s`
     );
 
-    const timer = setTimeout(async () => {
+    refreshTimerRef.current = setTimeout(async () => {
       console.log('[Auth] Proactive token refresh triggered');
       try {
         const res = await fetch(`${apiUrl}/api/auth/refresh`, {
@@ -91,9 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
       }
     }, refreshIn);
-
-    setRefreshTimer(timer);
-  }, [refreshTimer, getTokenMetadata, apiUrl]);
+  }, [apiUrl]);
 
   // Check if user is authenticated
   const checkAuth = useCallback(async () => {
@@ -122,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [apiUrl, getTokenMetadata, scheduleTokenRefresh]);
+  }, [apiUrl, scheduleTokenRefresh]);
 
   // Load user on mount
   useEffect(() => {
@@ -154,9 +153,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Logout
   const logout = async () => {
     // Clear refresh timer
-    if (refreshTimer) {
-      clearTimeout(refreshTimer);
-      setRefreshTimer(null);
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current);
+      refreshTimerRef.current = null;
     }
 
     try {
@@ -177,15 +176,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-
   // Cleanup timer on unmount
   useEffect(() => {
     return () => {
-      if (refreshTimer) {
-        clearTimeout(refreshTimer);
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current);
       }
     };
-  }, [refreshTimer]);
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>
