@@ -2,67 +2,72 @@ import Cookies from 'js-cookie';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
-async function refreshAccessToken(): Promise<string | null> {
-  const refreshToken = Cookies.get('refreshToken');
-
-  if (!refreshToken) {
-    return null;
-  }
-
+/**
+ * Refresh access token using httpOnly refresh token cookie
+ * Returns true if refresh was successful, false otherwise
+ */
+async function refreshAccessToken(): Promise<boolean> {
   try {
     const res = await fetch(`${API_URL}/api/auth/refresh`, {
       method: 'POST',
+      credentials: 'include', // Send httpOnly cookies
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
     });
 
     if (!res.ok) {
-      Cookies.remove('accessToken');
-      Cookies.remove('refreshToken');
+      // Redirect to login on refresh failure
       window.location.href = '/login';
-      return null;
+      return false;
     }
 
-    const { accessToken, refreshToken: newRefreshToken } = await res.json();
-
-    Cookies.set('accessToken', accessToken, { expires: 1 });
-    Cookies.set('refreshToken', newRefreshToken, { expires: 30 });
-
-    return accessToken;
+    return true;
   } catch (error) {
-    console.error('Token refresh failed:', error);
-    return null;
+    console.error('[API] Token refresh failed:', error);
+    window.location.href = '/login';
+    return false;
   }
 }
 
+/**
+ * API request wrapper with automatic cookie-based authentication
+ * - Sends httpOnly cookies automatically via credentials: 'include'
+ * - Adds CSRF token for state-changing requests
+ * - Handles 401 errors with automatic token refresh
+ */
 export async function apiRequest(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  let accessToken = Cookies.get('accessToken');
+  // Get CSRF token from cookie (NOT httpOnly, so JavaScript can read it)
+  const csrfToken = Cookies.get('_csrf');
 
-  const headers = {
+  const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
     ...options.headers,
   };
+
+  // Add CSRF token for state-changing requests
+  const method = options.method?.toUpperCase() || 'GET';
+  if (csrfToken && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+    headers['X-CSRF-Token'] = csrfToken;
+  }
 
   let response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,
+    credentials: 'include', // Send httpOnly cookies with request
   });
 
   // If 401, try to refresh token and retry once
   if (response.status === 401) {
-    accessToken = await refreshAccessToken();
+    const refreshed = await refreshAccessToken();
 
-    if (accessToken) {
+    if (refreshed) {
+      // Retry original request with new cookies
       response = await fetch(`${API_URL}${endpoint}`, {
         ...options,
-        headers: {
-          ...headers,
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers,
+        credentials: 'include',
       });
     }
   }

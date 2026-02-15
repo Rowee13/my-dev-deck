@@ -1,8 +1,14 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from 'react';
 import Cookies from 'js-cookie';
-import { getTimeUntilExpiration, isTokenExpired } from '../lib/jwt-utils';
 
 interface User {
   id: string;
@@ -12,101 +18,111 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  accessToken: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshTimer, setRefreshTimer] = useState<NodeJS.Timeout | null>(null);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
   /**
-   * Schedule proactive token refresh
-   * Refreshes token 5 minutes before expiration to prevent 401 errors
+   * Get token metadata from cookie
+   * This cookie is NOT httpOnly so JavaScript can read it
    */
-  const scheduleTokenRefresh = useCallback((token: string) => {
+  const getTokenMetadata = useCallback(() => {
+    const metaStr = Cookies.get('tokenMeta');
+    if (!metaStr) return null;
+
+    try {
+      return JSON.parse(metaStr) as { exp: number; iat: number };
+    } catch {
+      return null;
+    }
+  }, []);
+
+  /**
+   * Schedule proactive token refresh
+   * Uses tokenMeta cookie to determine when to refresh
+   */
+  const scheduleTokenRefresh = useCallback(() => {
     // Clear any existing timer
     if (refreshTimer) {
       clearTimeout(refreshTimer);
     }
 
-    const timeUntilExpiration = getTimeUntilExpiration(token);
-    const REFRESH_BUFFER = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const tokenMeta = getTokenMetadata();
+    if (!tokenMeta?.exp) return;
+
+    const expirationTime = tokenMeta.exp * 1000; // Convert to milliseconds
+    const timeUntilExpiration = expirationTime - Date.now();
+    const REFRESH_BUFFER = 5 * 60 * 1000; // 5 minutes
     const refreshIn = Math.max(0, timeUntilExpiration - REFRESH_BUFFER);
 
-    console.log(`[Auth] Scheduling token refresh in ${Math.floor(refreshIn / 1000)}s`);
+    console.log(
+      `[Auth] Scheduling token refresh in ${Math.floor(refreshIn / 1000)}s`
+    );
 
     const timer = setTimeout(async () => {
       console.log('[Auth] Proactive token refresh triggered');
       try {
-        await refreshAuth();
+        const res = await fetch(`${apiUrl}/api/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include', // Send httpOnly cookies
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+          scheduleTokenRefresh(); // Schedule next refresh
+        } else {
+          // Refresh failed, redirect to login
+          setUser(null);
+          window.location.href = '/login';
+        }
       } catch (error) {
         console.error('[Auth] Scheduled refresh failed:', error);
-        // Error will be handled when user makes next API call (reactive refresh)
+        setUser(null);
       }
     }, refreshIn);
 
     setRefreshTimer(timer);
-  }, [refreshTimer]);
+  }, [refreshTimer, getTokenMetadata, apiUrl]);
 
   // Check if user is authenticated
   const checkAuth = useCallback(async () => {
-    const token = Cookies.get('accessToken');
+    const tokenMeta = getTokenMetadata();
 
-    if (!token) {
+    if (!tokenMeta) {
       setLoading(false);
       return;
     }
 
-    // Check if token is already expired
-    if (isTokenExpired(token)) {
-      console.log('[Auth] Token expired, attempting refresh...');
-      try {
-        await refreshAuth();
-      } catch (error) {
-        console.error('[Auth] Token expired, refresh failed:', error);
-        Cookies.remove('accessToken');
-        Cookies.remove('refreshToken');
-        setLoading(false);
-        return;
-      }
-    }
-
     try {
       const res = await fetch(`${apiUrl}/api/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: 'include', // Send httpOnly cookies
       });
 
       if (res.ok) {
         const userData = await res.json();
         setUser(userData);
-        setAccessToken(token);
-
-        // Schedule proactive refresh
-        scheduleTokenRefresh(token);
+        scheduleTokenRefresh();
       } else {
-        // Try to refresh
-        await refreshAuth();
+        setUser(null);
       }
     } catch (error) {
       console.error('[Auth] Auth check failed:', error);
-      Cookies.remove('accessToken');
-      Cookies.remove('refreshToken');
+      setUser(null);
     } finally {
       setLoading(false);
     }
-  }, [apiUrl, scheduleTokenRefresh]);
+  }, [apiUrl, getTokenMetadata, scheduleTokenRefresh]);
 
   // Load user on mount
   useEffect(() => {
@@ -117,6 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     const res = await fetch(`${apiUrl}/api/auth/login`, {
       method: 'POST',
+      credentials: 'include', // Receive httpOnly cookies
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
@@ -126,17 +143,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(error.message || 'Login failed');
     }
 
-    const { accessToken, refreshToken, user } = await res.json();
+    const { user } = await res.json();
 
-    // Store tokens in cookies
-    Cookies.set('accessToken', accessToken, { expires: 1 }); // 1 day
-    Cookies.set('refreshToken', refreshToken, { expires: 30 }); // 30 days
-
-    setAccessToken(accessToken);
     setUser(user);
 
     // Schedule proactive refresh
-    scheduleTokenRefresh(accessToken);
+    scheduleTokenRefresh();
   };
 
   // Logout
@@ -147,62 +159,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRefreshTimer(null);
     }
 
-    const refreshToken = Cookies.get('refreshToken');
+    try {
+      const csrfToken = Cookies.get('_csrf');
 
-    if (refreshToken) {
-      try {
-        await fetch(`${apiUrl}/api/auth/logout`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({ refreshToken }),
-        });
-      } catch (error) {
-        console.error('[Auth] Logout request failed:', error);
-      }
+      await fetch(`${apiUrl}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include', // Send httpOnly cookies
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+        },
+      });
+    } catch (error) {
+      console.error('[Auth] Logout request failed:', error);
     }
 
-    Cookies.remove('accessToken');
-    Cookies.remove('refreshToken');
     setUser(null);
-    setAccessToken(null);
   };
 
-  // Refresh tokens
-  const refreshAuth = async () => {
-    const refreshToken = Cookies.get('refreshToken');
-
-    if (!refreshToken) {
-      throw new Error('No refresh token');
-    }
-
-    const res = await fetch(`${apiUrl}/api/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
-    });
-
-    if (!res.ok) {
-      Cookies.remove('accessToken');
-      Cookies.remove('refreshToken');
-      setUser(null);
-      setAccessToken(null);
-      throw new Error('Token refresh failed');
-    }
-
-    const { accessToken: newAccessToken, refreshToken: newRefreshToken, user } = await res.json();
-
-    Cookies.set('accessToken', newAccessToken, { expires: 1 });
-    Cookies.set('refreshToken', newRefreshToken, { expires: 30 });
-
-    setAccessToken(newAccessToken);
-    setUser(user);
-
-    // Schedule next refresh
-    scheduleTokenRefresh(newAccessToken);
-  };
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -214,7 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshTimer]);
 
   return (
-    <AuthContext.Provider value={{ user, accessToken, loading, login, logout, refreshAuth }}>
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
