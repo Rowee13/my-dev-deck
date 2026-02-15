@@ -10,6 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { createHash, randomUUID } from 'crypto';
+import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
@@ -299,6 +300,67 @@ export class AuthService {
 
     // Return unhashed token to client
     return token;
+  }
+
+  /**
+   * Set authentication cookies (httpOnly, secure, sameSite)
+   * Sets 3 cookies:
+   * - accessToken: httpOnly (cannot be read by JavaScript)
+   * - refreshToken: httpOnly, restricted to /api/auth/refresh
+   * - tokenMeta: NOT httpOnly (contains exp/iat for frontend proactive refresh)
+   */
+  setAuthCookies(
+    res: Response,
+    accessToken: string,
+    refreshToken: string,
+  ): void {
+    const isProduction = this.config.get('NODE_ENV') === 'production';
+
+    // Access token cookie - httpOnly, short-lived
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: isProduction, // HTTPS only in production
+      sameSite: 'lax', // CSRF protection
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours (matches JWT_ACCESS_EXPIRATION default)
+      path: '/',
+    });
+
+    // Refresh token cookie - httpOnly, long-lived, restricted path
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days (matches JWT_REFRESH_EXPIRATION default)
+      path: '/api/auth/refresh', // Only sent to refresh endpoint
+    });
+
+    // Token metadata cookie - NOT httpOnly (readable by JavaScript)
+    // Used by frontend to know token expiration for proactive refresh
+    const tokenPayload = this.jwtService.decode(accessToken) as any;
+    res.cookie(
+      'tokenMeta',
+      JSON.stringify({
+        exp: tokenPayload.exp,
+        iat: tokenPayload.iat,
+      }),
+      {
+        httpOnly: false, // Readable by JavaScript
+        secure: isProduction,
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60 * 1000,
+        path: '/',
+      },
+    );
+  }
+
+  /**
+   * Clear all authentication cookies
+   * Called on logout
+   */
+  clearAuthCookies(res: Response): void {
+    res.clearCookie('accessToken', { path: '/' });
+    res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
+    res.clearCookie('tokenMeta', { path: '/' });
   }
 
   /**

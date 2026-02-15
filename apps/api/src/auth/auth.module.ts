@@ -7,6 +7,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtCookieStrategy } from './strategies/jwt-cookie.strategy';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     ]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, JwtCookieStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

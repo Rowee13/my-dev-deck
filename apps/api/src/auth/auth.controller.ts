@@ -6,11 +6,17 @@ import {
   HttpStatus,
   Post,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -57,8 +63,21 @@ export class AuthController {
     status: 429,
     description: 'Too many login attempts',
   })
-  async login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.login(dto);
+
+    // Set httpOnly cookies for token storage
+    this.authService.setAuthCookies(res, result.accessToken, result.refreshToken);
+
+    // Return user info and tokens (tokens for backward compatibility)
+    return {
+      user: result.user,
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    };
   }
 
   @Public()
@@ -73,8 +92,30 @@ export class AuthController {
     status: 401,
     description: 'Invalid refresh token',
   })
-  async refresh(@Body() dto: RefreshTokenDto) {
-    return this.authService.refreshTokens(dto.refreshToken);
+  async refresh(
+    @Req() req: Request,
+    @Body() dto: RefreshTokenDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    // Try to get refresh token from cookie first, fallback to body for backward compatibility
+    const refreshToken =
+      req.cookies?.refreshToken || dto.refreshToken;
+
+    if (!refreshToken) {
+      throw new Error('No refresh token provided');
+    }
+
+    const result = await this.authService.refreshTokens(refreshToken);
+
+    // Set httpOnly cookies for token storage
+    this.authService.setAuthCookies(res, result.accessToken, result.refreshToken);
+
+    // Return user info and tokens (tokens for backward compatibility)
+    return {
+      user: result.user,
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    };
   }
 
   @Post('logout')
@@ -85,8 +126,23 @@ export class AuthController {
     status: 200,
     description: 'Logout successful',
   })
-  async logout(@Body() dto: RefreshTokenDto) {
-    return this.authService.revokeRefreshToken(dto.refreshToken);
+  async logout(
+    @Req() req: Request,
+    @Body() dto: RefreshTokenDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    // Try to get refresh token from cookie first, fallback to body for backward compatibility
+    const refreshToken =
+      req.cookies?.refreshToken || dto.refreshToken;
+
+    if (refreshToken) {
+      await this.authService.revokeRefreshToken(refreshToken);
+    }
+
+    // Clear authentication cookies
+    this.authService.clearAuthCookies(res);
+
+    return { message: 'Logout successful' };
   }
 
   @Post('change-password')
