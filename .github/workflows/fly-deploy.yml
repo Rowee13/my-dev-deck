@@ -7,6 +7,7 @@ on:
     paths:
       - 'apps/api/**'
       - 'packages/**'
+      - 'pnpm-lock.yaml'
       - '.github/workflows/fly-deploy.yml'
   workflow_dispatch: # Allow manual triggers
 
