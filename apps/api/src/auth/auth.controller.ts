@@ -99,7 +99,7 @@ export class AuthController {
   ) {
     // Try to get refresh token from cookie first, fallback to body for backward compatibility
     const refreshToken =
-      req.cookies?.refreshToken || dto.refreshToken;
+      req.cookies?.refreshToken || dto?.refreshToken;
 
     if (!refreshToken) {
       throw new Error('No refresh token provided');
@@ -133,7 +133,7 @@ export class AuthController {
   ) {
     // Try to get refresh token from cookie first, fallback to body for backward compatibility
     const refreshToken =
-      req.cookies?.refreshToken || dto.refreshToken;
+      req.cookies?.refreshToken || dto?.refreshToken;
 
     if (refreshToken) {
       await this.authService.revokeRefreshToken(refreshToken);
