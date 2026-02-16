@@ -28,7 +28,7 @@ export function parseJWT(token: string): JWTPayload | null {
       return null;
     }
 
-    const base64Url = parts[1]; // Get payload part
+    const base64Url = parts[1]!; // Get payload part
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
 
     // Decode base64 to JSON string

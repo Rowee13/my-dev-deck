@@ -41,9 +41,9 @@ export async function apiRequest(
   // Get CSRF token from cookie (NOT httpOnly, so JavaScript can read it)
   const csrfToken = Cookies.get('_csrf');
 
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string>),
   };
 
   // Add CSRF token for state-changing requests

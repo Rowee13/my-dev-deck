@@ -198,7 +198,7 @@ export default function ProjectInboxPage() {
                                 })
                                 .map((page, index, array) => {
                                     // Add ellipsis if there's a gap
-                                    const showEllipsis = index > 0 && page - array[index - 1] > 1;
+                                    const showEllipsis = index > 0 && page - (array[index - 1] ?? 0) > 1;
                                     return (
                                         <div key={page} className="flex items-center">
                                             {showEllipsis && (
