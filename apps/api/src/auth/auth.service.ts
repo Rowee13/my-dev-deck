@@ -331,7 +331,7 @@ export class AuthService {
       secure: isProduction,
       sameSite: 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days (matches JWT_REFRESH_EXPIRATION default)
-      path: '/api/auth/refresh', // Only sent to refresh endpoint
+      path: '/api/auth', // Sent to refresh and logout endpoints
     });
 
     // Token metadata cookie - NOT httpOnly (readable by JavaScript)
@@ -359,7 +359,7 @@ export class AuthService {
    */
   clearAuthCookies(res: Response): void {
     res.clearCookie('accessToken', { path: '/' });
-    res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
+    res.clearCookie('refreshToken', { path: '/api/auth' });
     res.clearCookie('tokenMeta', { path: '/' });
   }
 
