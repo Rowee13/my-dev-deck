@@ -13,9 +13,9 @@ primary_region = 'sin'
 [env]
   NODE_ENV = 'production'
   PORT = '3000'
-  SMTP_DOMAIN = 'devinbox.mydevdeck.app'
   SMTP_PORT = '2525'
-  CORS_ORIGINS = 'https://mydevdeck.architechrowee.com,https://my-dev-deck.vercel.app'
+  # Deployment-specific env vars (CORS_ORIGINS, SMTP_DOMAIN, etc.)
+  # should be set via: fly secrets set KEY=VALUE
 
 [[mounts]]
   source = 'data'
