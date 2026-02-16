@@ -15,6 +15,7 @@ primary_region = 'sin'
   PORT = '3000'
   SMTP_DOMAIN = 'devinbox.mydevdeck.app'
   SMTP_PORT = '2525'
+  CORS_ORIGINS = 'https://mydevdeck.architechrowee.com,https://my-dev-deck.vercel.app'
 
 [[mounts]]
   source = 'data'
