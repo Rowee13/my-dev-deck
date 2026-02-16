@@ -36,8 +36,9 @@ async function bootstrap() {
   );
 
   // Enable CORS
+  const corsOrigins = process.env.CORS_ORIGINS?.split(',');
   app.enableCors({
-    origin: process.env.CORS_ORIGINS?.split(',') || '*',
+    origin: corsOrigins && corsOrigins.length > 0 ? corsOrigins : true,
     credentials: true, // CRITICAL: Required for cookie-based auth
   });
 
