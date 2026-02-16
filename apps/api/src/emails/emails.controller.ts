@@ -53,7 +53,7 @@ export class EmailsController {
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
-    const userId = req.user!['id'];
+    const userId = (req.user as { id: string }).id;
     return this.emailsService.findAllByProject(
       userId,
       projectId,
@@ -79,7 +79,7 @@ export class EmailsController {
     @Param('projectId') projectId: string,
     @Param('emailId') emailId: string,
   ) {
-    const userId = req.user!['id'];
+    const userId = (req.user as { id: string }).id;
     return this.emailsService.findOne(userId, projectId, emailId);
   }
 
@@ -101,7 +101,7 @@ export class EmailsController {
     @Param('emailId') emailId: string,
     @Body('isRead') isRead: boolean,
   ) {
-    const userId = req.user!['id'];
+    const userId = (req.user as { id: string }).id;
     return this.emailsService.markAsRead(userId, projectId, emailId, isRead);
   }
 
@@ -122,7 +122,7 @@ export class EmailsController {
     @Param('projectId') projectId: string,
     @Param('emailId') emailId: string,
   ) {
-    const userId = req.user!['id'];
+    const userId = (req.user as { id: string }).id;
     return this.emailsService.remove(userId, projectId, emailId);
   }
 
@@ -145,8 +145,12 @@ export class EmailsController {
     @Param('attachmentId') attachmentId: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const userId = req.user!['id'];
-    const attachment = await this.emailsService.getAttachment(userId, projectId, attachmentId);
+    const userId = (req.user as { id: string }).id;
+    const attachment = await this.emailsService.getAttachment(
+      userId,
+      projectId,
+      attachmentId,
+    );
 
     const file = fs.createReadStream(attachment.storagePath);
 

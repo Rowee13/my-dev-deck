@@ -27,18 +27,13 @@ export class JwtCookieStrategy extends PassportStrategy(
       // Extract JWT from cookie instead of Authorization header
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request: Request) => {
-          // Try to get token from cookie
-          const token = request?.cookies?.accessToken;
-
-          if (!token) {
-            return null;
-          }
-
-          return token;
+          return (
+            (request?.cookies as Record<string, string>)?.accessToken ?? null
+          );
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: config.get('JWT_SECRET'),
+      secretOrKey: config.get<string>('JWT_SECRET'),
     });
   }
 

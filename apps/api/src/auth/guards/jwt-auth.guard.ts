@@ -41,7 +41,10 @@ export class JwtAuthGuard extends AuthGuard(['jwt-cookie', 'jwt']) {
     return super.canActivate(context);
   }
 
-  handleRequest(err: any, user: any, info: any) {
+  handleRequest<TUser = { id: string; email: string; name: string | null }>(
+    err: Error | null,
+    user: TUser | false,
+  ): TUser {
     // If error or no user found with either strategy, throw unauthorized
     if (err || !user) {
       throw (

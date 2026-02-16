@@ -90,8 +90,9 @@ export class AuthService {
       return null;
     }
 
-    // Return user without password
-    const { password: _, ...result } = user;
+    // Return user without password - using destructuring to omit it
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _pw, ...result } = user;
     return result;
   }
 
@@ -336,21 +337,19 @@ export class AuthService {
 
     // Token metadata cookie - NOT httpOnly (readable by JavaScript)
     // Used by frontend to know token expiration for proactive refresh
-    const tokenPayload = this.jwtService.decode(accessToken) as any;
-    res.cookie(
-      'tokenMeta',
-      JSON.stringify({
-        exp: tokenPayload.exp,
-        iat: tokenPayload.iat,
-      }),
-      {
-        httpOnly: false, // Readable by JavaScript
-        secure: isProduction,
-        sameSite: 'lax',
-        maxAge: 24 * 60 * 60 * 1000,
-        path: '/',
-      },
-    );
+    // jwtService.decode() returns any - safely extract known JWT claims
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+    const tokenPayload = this.jwtService.decode(accessToken);
+    const exp = tokenPayload.exp as number;
+    const iat = tokenPayload.iat as number;
+    /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+    res.cookie('tokenMeta', JSON.stringify({ exp, iat }), {
+      httpOnly: false, // Readable by JavaScript
+      secure: isProduction,
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000,
+      path: '/',
+    });
   }
 
   /**

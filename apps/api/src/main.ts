@@ -4,7 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import * as basicAuth from 'express-basic-auth';
 import * as cookieParser from 'cookie-parser';
-import * as csurf from 'csurf';
+// import * as csurf from 'csurf';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,17 +13,11 @@ async function bootstrap() {
   app.use(cookieParser());
 
   // CSRF Protection - disabled for now, will be enabled when frontend is ready
-  // NOTE: Public endpoints (@Public decorator) are automatically exempted
-  const csrfProtection = csurf({
-    cookie: {
-      httpOnly: false, // Frontend needs to read this cookie
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-    },
-  });
-
-  // Apply CSRF to all routes (except those marked with @Public)
-  // Commented out for now to allow gradual migration
+  // Uncomment below when ready:
+  // import * as csurf from 'csurf';
+  // const csrfProtection = csurf({
+  //   cookie: { httpOnly: false, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' },
+  // });
   // app.use(csrfProtection);
 
   // Enable global validation
