@@ -80,15 +80,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (res.ok) {
           const data = await res.json();
+          Cookies.set('session', 'active', { path: '/', expires: 1 });
           setUser(data.user);
           scheduleTokenRefresh(); // Schedule next refresh
         } else {
           // Refresh failed, redirect to login
+          Cookies.remove('session', { path: '/' });
           setUser(null);
           window.location.href = '/login';
         }
       } catch (error) {
         console.error('[Auth] Scheduled refresh failed:', error);
+        Cookies.remove('session', { path: '/' });
         setUser(null);
       }
     }, refreshIn);
@@ -110,13 +113,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (res.ok) {
         const userData = await res.json();
+        Cookies.set('session', 'active', { path: '/', expires: 1 });
         setUser(userData);
         scheduleTokenRefresh();
       } else {
+        Cookies.remove('session', { path: '/' });
         setUser(null);
       }
     } catch (error) {
       console.error('[Auth] Auth check failed:', error);
+      Cookies.remove('session', { path: '/' });
       setUser(null);
     } finally {
       setLoading(false);
@@ -143,6 +149,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const { user } = await res.json();
+
+    // Set session cookie on frontend domain (for middleware auth check)
+    // The real auth tokens are httpOnly cookies on the API domain
+    Cookies.set('session', 'active', { path: '/', expires: 1 });
 
     setUser(user);
 
@@ -172,6 +182,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('[Auth] Logout request failed:', error);
     }
+
+    // Clear session cookie from frontend domain
+    Cookies.remove('session', { path: '/' });
 
     setUser(null);
   };
