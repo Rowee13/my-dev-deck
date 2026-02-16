@@ -32,7 +32,9 @@ export class AuthController {
   @Public()
   @Post('setup')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Initial user setup (only works if no users exist)' })
+  @ApiOperation({
+    summary: 'Initial user setup (only works if no users exist)',
+  })
   @ApiResponse({
     status: 201,
     description: 'User created successfully',
@@ -70,7 +72,11 @@ export class AuthController {
     const result = await this.authService.login(dto);
 
     // Set httpOnly cookies for token storage
-    this.authService.setAuthCookies(res, result.accessToken, result.refreshToken);
+    this.authService.setAuthCookies(
+      res,
+      result.accessToken,
+      result.refreshToken,
+    );
 
     // Return user info and tokens (tokens for backward compatibility)
     return {
@@ -99,7 +105,9 @@ export class AuthController {
   ) {
     // Try to get refresh token from cookie first, fallback to body for backward compatibility
     const refreshToken =
-      req.cookies?.refreshToken || dto?.refreshToken;
+      ((req.cookies as Record<string, string>)?.refreshToken as
+        | string
+        | undefined) || dto?.refreshToken;
 
     if (!refreshToken) {
       throw new Error('No refresh token provided');
@@ -108,7 +116,11 @@ export class AuthController {
     const result = await this.authService.refreshTokens(refreshToken);
 
     // Set httpOnly cookies for token storage
-    this.authService.setAuthCookies(res, result.accessToken, result.refreshToken);
+    this.authService.setAuthCookies(
+      res,
+      result.accessToken,
+      result.refreshToken,
+    );
 
     // Return user info and tokens (tokens for backward compatibility)
     return {
@@ -133,7 +145,9 @@ export class AuthController {
   ) {
     // Try to get refresh token from cookie first, fallback to body for backward compatibility
     const refreshToken =
-      req.cookies?.refreshToken || dto?.refreshToken;
+      ((req.cookies as Record<string, string>)?.refreshToken as
+        | string
+        | undefined) || dto?.refreshToken;
 
     if (refreshToken) {
       await this.authService.revokeRefreshToken(refreshToken);
@@ -158,7 +172,7 @@ export class AuthController {
     description: 'Current password is incorrect',
   })
   async changePassword(@Req() req: Request, @Body() dto: ChangePasswordDto) {
-    const userId = req.user!['id'];
+    const userId = (req.user as { id: string }).id;
     return this.authService.changePassword(userId, dto);
   }
 
@@ -170,7 +184,7 @@ export class AuthController {
     description: 'User information retrieved successfully',
   })
   async getMe(@Req() req: Request) {
-    const userId = req.user!['id'];
+    const userId = (req.user as { id: string }).id;
     return this.authService.getCurrentUser(userId);
   }
 }

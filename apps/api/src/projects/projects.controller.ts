@@ -49,7 +49,7 @@ export class ProjectsController {
     description: 'Project with this slug already exists',
   })
   create(@Req() req: Request, @Body() createProjectDto: CreateProjectDto) {
-    const userId = req.user!['id'];
+    const userId = (req.user as { id: string }).id;
     return this.projectsService.create(userId, createProjectDto);
   }
 
@@ -60,7 +60,7 @@ export class ProjectsController {
     description: 'Returns all projects with email counts',
   })
   findAll(@Req() req: Request) {
-    const userId = req.user!['id'];
+    const userId = (req.user as { id: string }).id;
     return this.projectsService.findAll(userId);
   }
 
@@ -76,7 +76,7 @@ export class ProjectsController {
     description: 'Project not found',
   })
   findOne(@Req() req: Request, @Param('id') id: string) {
-    const userId = req.user!['id'];
+    const userId = (req.user as { id: string }).id;
     return this.projectsService.findOne(userId, id);
   }
 
@@ -92,8 +92,12 @@ export class ProjectsController {
     status: 404,
     description: 'Project not found',
   })
-  update(@Req() req: Request, @Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-    const userId = req.user!['id'];
+  update(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() updateProjectDto: UpdateProjectDto,
+  ) {
+    const userId = (req.user as { id: string }).id;
     return this.projectsService.update(userId, id, updateProjectDto);
   }
 
@@ -110,7 +114,7 @@ export class ProjectsController {
     description: 'Project not found',
   })
   remove(@Req() req: Request, @Param('id') id: string) {
-    const userId = req.user!['id'];
+    const userId = (req.user as { id: string }).id;
     return this.projectsService.remove(userId, id);
   }
 }
