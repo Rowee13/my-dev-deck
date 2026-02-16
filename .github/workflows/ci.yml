@@ -21,6 +21,12 @@ jobs:
           cache: 'pnpm'
 
       - run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter api exec prisma generate
+        env:
+          DATABASE_URL: 'postgresql://dummy:dummy@localhost:5432/dummy'
+
       - run: pnpm lint
 
   type-check:
@@ -42,6 +48,9 @@ jobs:
         run: pnpm --filter api exec prisma generate
         env:
           DATABASE_URL: 'postgresql://dummy:dummy@localhost:5432/dummy'
+
+      - name: Build shared packages
+        run: pnpm --filter @repo/ui build:components
 
       - run: pnpm check-types
 
