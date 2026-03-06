@@ -42,7 +42,7 @@ primary_region = 'sin'
   internal_port = 2525
 
   [[services.ports]]
-    port = 2525
+    port = 25
 
 [[vm]]
   memory = '256mb'
