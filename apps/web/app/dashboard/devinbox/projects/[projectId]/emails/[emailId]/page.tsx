@@ -157,7 +157,7 @@ export default function EmailDetailPage() {
         <div className="flex items-center space-x-3">
           <button
             onClick={() => markAsRead(!email.isRead)}
-            className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
           >
             Mark as {email.isRead ? 'Unread' : 'Read'}
           </button>
@@ -281,12 +281,21 @@ export default function EmailDetailPage() {
 
           {/* Email Content */}
           {viewMode === 'html' && email.bodyHtml ? (
-            <div className="border border-gray-200 rounded-md p-4">
+            <div className="border border-gray-200 rounded-md p-4 flex-1">
               <iframe
                 srcDoc={email.bodyHtml}
-                className="w-full min-h-96 border-0"
-                sandbox="allow-same-origin"
+                className="w-full border-0"
+                style={{ minHeight: 'calc(100vh - 420px)' }}
+                sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
                 title="Email content"
+                onLoad={(e) => {
+                  const iframe = e.target as HTMLIFrameElement;
+                  if (iframe.contentDocument?.body) {
+                    const contentHeight = iframe.contentDocument.body.scrollHeight;
+                    const availableHeight = window.innerHeight - 420;
+                    iframe.style.height = Math.max(contentHeight, availableHeight) + 'px';
+                  }
+                }}
               />
             </div>
           ) : (
