@@ -118,21 +118,46 @@ export function CreateProjectModal({
 
         {/* Slug Field */}
         <div className="mb-4">
-          <label
-            htmlFor="slug"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Subdomain Slug *
-          </label>
+          <div className="flex items-center justify-between mb-1">
+            <label
+              htmlFor="slug"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Subdomain Slug *
+            </label>
+            {autoGenerateSlug ? (
+              <button
+                type="button"
+                onClick={() => setAutoGenerateSlug(false)}
+                className="text-xs text-blue-600 hover:text-blue-800"
+              >
+                Customize
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setAutoGenerateSlug(true);
+                  setSlug(generateSlug(name));
+                }}
+                className="text-xs text-gray-500 hover:text-gray-700"
+              >
+                Reset to auto
+              </button>
+            )}
+          </div>
           <input
             type="text"
             id="slug"
             value={slug}
             onChange={(e) => handleSlugChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm text-gray-900"
+            className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm text-gray-900 ${
+              autoGenerateSlug ? 'bg-gray-50' : ''
+            }`}
             placeholder="my-awesome-project"
             required
             disabled={loading}
+            readOnly={autoGenerateSlug}
             pattern="[a-z0-9-]+"
           />
           <p className="mt-1 text-xs text-gray-500">
