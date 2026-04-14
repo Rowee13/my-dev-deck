@@ -265,9 +265,26 @@ export class AuthService {
   }
 
   /**
+   * Issue access + refresh tokens for an already-known user (no password check).
+   *
+   * Used by flows that authenticate via a mechanism other than credentials,
+   * e.g. the passwordless demo account endpoint.
+   */
+  async issueTokensForUser(user: {
+    id: string;
+    email: string;
+    name: string | null;
+  }) {
+    const accessToken = await this.generateAccessToken(user.id, user.email);
+    const refreshToken = await this.generateRefreshToken(user.id);
+    this.logger.log(`Tokens issued for user: ${user.email}`);
+    return { accessToken, refreshToken, user };
+  }
+
+  /**
    * Generate JWT access token
    */
-  private async generateAccessToken(
+  async generateAccessToken(
     userId: string,
     email: string,
   ): Promise<string> {
@@ -280,7 +297,7 @@ export class AuthService {
   /**
    * Generate refresh token and store in database
    */
-  private async generateRefreshToken(userId: string): Promise<string> {
+  async generateRefreshToken(userId: string): Promise<string> {
     const token = randomUUID();
     const hashedToken = this.hashRefreshToken(token);
 
