@@ -18,15 +18,17 @@ datasource db {
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
-  password  String   // bcrypt hashed
+  password  String // bcrypt hashed
   name      String?
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+  isDemo    Boolean  @default(false) @map("is_demo")
 
   // Relations
   projects      Project[]
   refreshTokens RefreshToken[]
 
+  @@index([isDemo, createdAt])
   @@map("users")
 }
 
@@ -41,10 +43,10 @@ model RefreshToken {
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("refresh_tokens")
   @@index([userId])
   @@index([token])
   @@index([expiresAt])
+  @@map("refresh_tokens")
 }
 
 model Project {
@@ -60,8 +62,8 @@ model Project {
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   emails Email[]
 
-  @@map("projects")
   @@index([userId])
+  @@map("projects")
 }
 
 model Email {
@@ -72,7 +74,7 @@ model Email {
   subject    String?
   bodyText   String?  @map("body_text")
   bodyHtml   String?  @map("body_html")
-  headers    Json     // Store email headers as JSON
+  headers    Json // Store email headers as JSON
   rawMime    String?  @map("raw_mime") // Full RFC822 content
   receivedAt DateTime @default(now()) @map("received_at")
   isRead     Boolean  @default(false) @map("is_read")
@@ -81,9 +83,9 @@ model Email {
   project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   attachments Attachment[]
 
-  @@map("emails")
   @@index([projectId])
   @@index([receivedAt])
+  @@map("emails")
 }
 
 model Attachment {
@@ -97,6 +99,6 @@ model Attachment {
   // Relations
   email Email @relation(fields: [emailId], references: [id], onDelete: Cascade)
 
-  @@map("attachments")
   @@index([emailId])
+  @@map("attachments")
 }
