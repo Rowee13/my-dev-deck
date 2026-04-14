@@ -1,11 +1,4 @@
 /**
- * Token kept for forward compatibility with potential Nest multi-provider
- * wiring, but not used for DI injection of the registry (see
- * DemoSeederRegistry, which uses a factory-based approach to collect seeders).
- */
-export const DEMO_SEEDER = Symbol('DEMO_SEEDER');
-
-/**
  * Contract implemented by each tool-specific demo seeder.
  *
  * Each seeder is responsible for populating realistic sample data scoped to
