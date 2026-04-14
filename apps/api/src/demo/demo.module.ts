@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
 import { DemoConfig } from './demo.config';
 import { DemoSeeder } from './demo-seeder.interface';
 import { DemoSeederRegistry } from './demo-seeder.registry';
+import { BlockDemoGuard } from './guards/block-demo.guard';
 
 @Module({
   imports: [ScheduleModule.forRoot(), PrismaModule, AuthModule],
@@ -17,6 +19,7 @@ import { DemoSeederRegistry } from './demo-seeder.registry';
       useFactory: (...seeders: DemoSeeder[]) => new DemoSeederRegistry(seeders),
       inject: [],
     },
+    { provide: APP_GUARD, useClass: BlockDemoGuard },
   ],
   controllers: [],
   exports: [DemoConfig, DemoSeederRegistry],
