@@ -27,7 +27,12 @@ export class DemoController {
   @Post('demo')
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(ThrottlerGuard)
-  @Throttle({ default: { limit: 2, ttl: 60 * 60 * 1000 } })
+  @Throttle({
+    default: {
+      limit: parseInt(process.env.DEMO_RATE_LIMIT_PER_HOUR || '2', 10),
+      ttl: 60 * 60 * 1000,
+    },
+  })
   @ApiOperation({ summary: 'Create a passwordless demo account' })
   async createDemo(@Res({ passthrough: true }) res: Response) {
     const user = await this.demo.createDemoUser();
