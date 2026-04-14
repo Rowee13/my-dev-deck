@@ -41,7 +41,14 @@ export class JwtAuthGuard extends AuthGuard(['jwt-cookie', 'jwt']) {
     return super.canActivate(context);
   }
 
-  handleRequest<TUser = { id: string; email: string; name: string | null }>(
+  handleRequest<
+    TUser = {
+      id: string;
+      email: string;
+      name: string | null;
+      isDemo: boolean;
+    },
+  >(
     err: Error | null,
     user: TUser | false,
   ): TUser {

@@ -45,7 +45,7 @@ export class JwtCookieStrategy extends PassportStrategy(
     // Fetch user from database to ensure they still exist
     const user = await this.prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, email: true, name: true },
+      select: { id: true, email: true, name: true, isDemo: true },
     });
 
     if (!user) {
