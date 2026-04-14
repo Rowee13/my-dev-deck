@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { DemoModule } from './demo/demo.module';
 import { EmailsModule } from './emails/emails.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProjectsModule } from './projects/projects.module';
@@ -21,6 +22,7 @@ import { SmtpModule } from './smtp/smtp.module';
     ProjectsModule,
     EmailsModule,
     SmtpModule,
+    DemoModule,
   ],
   controllers: [AppController],
   providers: [
