@@ -17,6 +17,7 @@ import {
 } from '@nestjs/swagger';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { Request, Response } from 'express';
+import { BlockDemo } from '../demo/decorators/block-demo.decorator';
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -159,6 +160,7 @@ export class AuthController {
     return { message: 'Logout successful' };
   }
 
+  @BlockDemo()
   @Post('change-password')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
