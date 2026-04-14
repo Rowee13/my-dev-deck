@@ -12,8 +12,4 @@ export class DemoConfig {
   get ttlMinutes(): number {
     return parseInt(this.config.get('DEMO_TTL_MINUTES') || '60', 10);
   }
-
-  get rateLimitPerHour(): number {
-    return parseInt(this.config.get('DEMO_RATE_LIMIT_PER_HOUR') || '2', 10);
-  }
 }

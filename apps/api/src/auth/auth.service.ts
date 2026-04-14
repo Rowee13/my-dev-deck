@@ -284,7 +284,7 @@ export class AuthService {
   /**
    * Generate JWT access token
    */
-  async generateAccessToken(
+  private async generateAccessToken(
     userId: string,
     email: string,
   ): Promise<string> {
@@ -297,7 +297,7 @@ export class AuthService {
   /**
    * Generate refresh token and store in database
    */
-  async generateRefreshToken(userId: string): Promise<string> {
+  private async generateRefreshToken(userId: string): Promise<string> {
     const token = randomUUID();
     const hashedToken = this.hashRefreshToken(token);
 
