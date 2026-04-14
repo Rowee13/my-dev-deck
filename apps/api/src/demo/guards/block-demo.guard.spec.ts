@@ -1,9 +1,16 @@
 import { Reflector } from '@nestjs/core';
-import { ForbiddenException, ExecutionContext } from '@nestjs/common';
+import {
+  ForbiddenException,
+  UnauthorizedException,
+  ExecutionContext,
+} from '@nestjs/common';
 import { BlockDemoGuard } from './block-demo.guard';
 import { BLOCK_DEMO_KEY } from '../decorators/block-demo.decorator';
 
-function ctx(user: { id: string; isDemo: boolean }, blocked: boolean) {
+function ctx(
+  user: { id: string; isDemo: boolean } | undefined,
+  blocked: boolean,
+) {
   const reflector = new Reflector();
   jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(blocked);
   const guard = new BlockDemoGuard(reflector);
@@ -32,6 +39,16 @@ describe('BlockDemoGuard', () => {
 
   it('allows demo users on non-blocked routes', () => {
     const { guard, exec } = ctx({ id: 'u', isDemo: true }, false);
+    expect(guard.canActivate(exec)).toBe(true);
+  });
+
+  it('throws UnauthorizedException on blocked routes when req.user is missing', () => {
+    const { guard, exec } = ctx(undefined, true);
+    expect(() => guard.canActivate(exec)).toThrow(UnauthorizedException);
+  });
+
+  it('allows missing user on non-blocked routes', () => {
+    const { guard, exec } = ctx(undefined, false);
     expect(guard.canActivate(exec)).toBe(true);
   });
 });
