@@ -15,6 +15,8 @@ interface User {
   id: string;
   email: string;
   name: string | null;
+  isDemo?: boolean;
+  expiresAt?: string | Date | null;
 }
 
 interface AuthContextType {
