@@ -157,7 +157,7 @@ export default function EmailDetailPage() {
         <div className="flex items-center space-x-3">
           <button
             onClick={() => markAsRead(!email.isRead)}
-            className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            className="px-3 py-1 text-sm bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
           >
             Mark as {email.isRead ? 'Unread' : 'Read'}
           </button>
