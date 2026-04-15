@@ -34,6 +34,19 @@ async function refreshAccessToken(): Promise<boolean> {
  * - Adds CSRF token for state-changing requests
  * - Handles 401 errors with automatic token refresh
  */
+/**
+ * Start a demo session
+ * Calls POST /api/auth/demo - server sets httpOnly auth cookies on success.
+ * Returns the raw Response so callers can branch on status codes (201/429/404).
+ */
+export async function tryDemo(): Promise<Response> {
+  return fetch(`${API_URL}/api/auth/demo`, {
+    method: 'POST',
+    credentials: 'include', // Receive httpOnly cookies
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
 export async function apiRequest(
   endpoint: string,
   options: RequestInit = {}
