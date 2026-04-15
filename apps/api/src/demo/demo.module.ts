@@ -9,18 +9,21 @@ import { DemoSeeder } from './demo-seeder.interface';
 import { DemoSeederRegistry } from './demo-seeder.registry';
 import { DemoService } from './demo.service';
 import { BlockDemoGuard } from './guards/block-demo.guard';
+import { DevInboxDemoSeeder } from './seeders/devinbox-demo.seeder';
 
 @Module({
   imports: [ScheduleModule.forRoot(), PrismaModule, AuthModule],
   providers: [
     DemoConfig,
     DemoService,
+    DevInboxDemoSeeder,
     {
       provide: DemoSeederRegistry,
-      // Concrete seeders (DevInbox, etc.) will be appended to `inject` and the
-      // factory signature as they are introduced in later tasks.
+      // Concrete seeders are appended to `inject` as they are introduced.
+      // The factory receives them in the same order and forwards the list
+      // to the registry.
       useFactory: (...seeders: DemoSeeder[]) => new DemoSeederRegistry(seeders),
-      inject: [],
+      inject: [DevInboxDemoSeeder],
     },
     { provide: APP_GUARD, useClass: BlockDemoGuard },
   ],
