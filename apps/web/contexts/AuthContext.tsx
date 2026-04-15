@@ -99,19 +99,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, refreshIn);
   }, [apiUrl]);
 
+  /**
+   * Attempt to refresh the access token using the httpOnly refresh cookie.
+   * Returns true on success. The refresh cookie lives 30d (path=/api/auth),
+   * so this works even after tokenMeta (24h) has expired.
+   */
+  const tryRefresh = useCallback(async (): Promise<boolean> => {
+    try {
+      const res = await fetch(`${apiUrl}/api/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      return res.ok;
+    } catch (error) {
+      console.error('[Auth] Refresh attempt failed:', error);
+      return false;
+    }
+  }, [apiUrl]);
+
   // Check if user is authenticated
   const checkAuth = useCallback(async () => {
-    const tokenMeta = getTokenMetadata();
-
-    if (!tokenMeta) {
-      setLoading(false);
-      return;
+    // If tokenMeta is missing (access token expired while tab was closed),
+    // the refresh cookie may still be valid — try refresh before giving up.
+    if (!getTokenMetadata()) {
+      const refreshed = await tryRefresh();
+      if (!refreshed) {
+        setLoading(false);
+        return;
+      }
     }
 
     try {
-      const res = await fetch(`${apiUrl}/api/auth/me`, {
-        credentials: 'include', // Send httpOnly cookies
+      let res = await fetch(`${apiUrl}/api/auth/me`, {
+        credentials: 'include',
       });
+
+      // If /me still 401s (e.g., access token expired between checks),
+      // try one refresh + retry before declaring the user logged out.
+      if (res.status === 401) {
+        const refreshed = await tryRefresh();
+        if (refreshed) {
+          res = await fetch(`${apiUrl}/api/auth/me`, {
+            credentials: 'include',
+          });
+        }
+      }
 
       if (res.ok) {
         const userData = await res.json();
@@ -129,7 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [apiUrl, scheduleTokenRefresh]);
+  }, [apiUrl, scheduleTokenRefresh, tryRefresh]);
 
   // Load user on mount
   useEffect(() => {
