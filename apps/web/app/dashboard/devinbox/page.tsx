@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CreateProjectModal } from '../../../components/devinbox/CreateProjectModal';
 import { apiRequest } from '../../../lib/api';
+import { useAuth } from '../../../contexts/AuthContext';
+
+const DEMO_PROJECT_CAP = 2;
 
 interface Project {
   id: string;
@@ -17,9 +20,14 @@ interface Project {
 }
 
 export default function DevInboxPage() {
+  const { user } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const isDemo = !!user?.isDemo;
+  const projectCount = projects.length;
+  const atCap = isDemo && projectCount >= DEMO_PROJECT_CAP;
 
   useEffect(() => {
     fetchProjects();
@@ -71,12 +79,31 @@ export default function DevInboxPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">DevInbox</h1>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-        >
-          + New Project
-        </button>
+        <div className="flex items-center gap-3">
+          {isDemo && (
+            <span
+              className={`text-sm ${
+                atCap ? 'text-amber-700 font-medium' : 'text-gray-600'
+              }`}
+            >
+              {atCap
+                ? `${projectCount}/${DEMO_PROJECT_CAP} projects used (demo limit)`
+                : `${projectCount}/${DEMO_PROJECT_CAP} projects used`}
+            </span>
+          )}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            disabled={atCap}
+            title={
+              atCap
+                ? `Demo accounts are limited to ${DEMO_PROJECT_CAP} projects.`
+                : undefined
+            }
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600"
+          >
+            + New Project
+          </button>
+        </div>
       </div>
 
       <p className="text-gray-600 mb-8">

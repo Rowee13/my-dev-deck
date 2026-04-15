@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ProjectTabs } from "../../../../../components/devinbox/ProjectTabs";
 import { apiRequest } from "../../../../../lib/api";
+import { useAuth } from "../../../../../contexts/AuthContext";
 
 interface Email {
     id: string;
@@ -17,12 +18,16 @@ interface Email {
 export default function ProjectInboxPage() {
     const params = useParams();
     const projectId = params?.projectId as string;
+    const { user } = useAuth();
+    const isDemo = !!user?.isDemo;
 
     const [emails, setEmails] = useState<Email[]>([]);
     const [loading, setLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalEmails, setTotalEmails] = useState(0);
+    const [isInjecting, setIsInjecting] = useState(false);
+    const [injectError, setInjectError] = useState<string | null>(null);
     const itemsPerPage = 20;
 
     const fetchEmails = useCallback(async (silent = false) => {
@@ -47,6 +52,54 @@ export default function ProjectInboxPage() {
             }
         }
     }, [projectId, currentPage, itemsPerPage]);
+
+    const injectTestEmail = async () => {
+        if (!projectId) return;
+        setInjectError(null);
+        setIsInjecting(true);
+        try {
+            const res = await apiRequest(
+                `/api/projects/${projectId}/demo/inject-email`,
+                { method: "POST" }
+            );
+
+            if (res.status === 201) {
+                // Reset to first page so the newly injected email is visible
+                if (currentPage !== 1) {
+                    setCurrentPage(1);
+                } else {
+                    await fetchEmails(true);
+                }
+                return;
+            }
+
+            if (res.status === 403) {
+                let message = "You don't have permission to inject test emails.";
+                try {
+                    const body = await res.json();
+                    const backendMsg = (body?.message as string | undefined) ?? "";
+                    if (backendMsg.toLowerCase().includes("cap") ||
+                        backendMsg.toLowerCase().includes("limit") ||
+                        backendMsg.toLowerCase().includes("20")) {
+                        message = "You've reached the 20 email limit for this project.";
+                    } else if (backendMsg) {
+                        message = backendMsg;
+                    }
+                } catch {
+                    // ignore JSON parse errors
+                }
+                setInjectError(message);
+                return;
+            }
+
+            setInjectError("Failed to inject test email. Please try again.");
+        } catch (error) {
+            console.error("Error injecting test email:", error);
+            setInjectError("Failed to inject test email. Please try again.");
+        } finally {
+            setIsInjecting(false);
+        }
+    };
 
     useEffect(() => {
         if (projectId) {
@@ -78,7 +131,17 @@ export default function ProjectInboxPage() {
                     </Link>
                     <h1 className="text-3xl font-bold text-gray-900">Project Inbox</h1>
                 </div>
-                {isRefreshing && (
+                <div className="flex items-center gap-4">
+                    {isDemo && (
+                        <button
+                            onClick={injectTestEmail}
+                            disabled={isInjecting}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-purple-600 text-sm font-medium"
+                        >
+                            {isInjecting ? "Injecting…" : "Inject test email"}
+                        </button>
+                    )}
+                    {isRefreshing && (
                     <div className="flex items-center text-sm text-gray-500">
                         <svg
                             className="animate-spin h-4 w-4 mr-2"
@@ -102,8 +165,22 @@ export default function ProjectInboxPage() {
                         </svg>
                         Refreshing...
                     </div>
-                )}
+                    )}
+                </div>
             </div>
+
+            {injectError && (
+                <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md text-sm flex items-start justify-between">
+                    <span>{injectError}</span>
+                    <button
+                        onClick={() => setInjectError(null)}
+                        className="ml-4 text-red-600 hover:text-red-800"
+                        aria-label="Dismiss"
+                    >
+                        ×
+                    </button>
+                </div>
+            )}
 
             {/* Tabs */}
             <ProjectTabs projectId={projectId} />
