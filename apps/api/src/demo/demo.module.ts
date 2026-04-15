@@ -3,6 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
+import { DemoCleanupService } from './demo-cleanup.service';
 import { DemoConfig } from './demo.config';
 import { DemoController } from './demo.controller';
 import { DemoEmailsController } from './demo-emails.controller';
@@ -17,6 +18,7 @@ import { DevInboxDemoSeeder } from './seeders/devinbox-demo.seeder';
   providers: [
     DemoConfig,
     DemoService,
+    DemoCleanupService,
     DevInboxDemoSeeder,
     {
       provide: DemoSeederRegistry,
