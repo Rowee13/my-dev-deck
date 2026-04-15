@@ -1,5 +1,8 @@
 import { Test } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { DemoService } from './demo.service';
 import { DemoConfig } from './demo.config';
 import { DemoSeederRegistry } from './demo-seeder.registry';
@@ -17,6 +20,8 @@ describe('DemoService', () => {
     };
     const prisma = {
       user: { create: jest.fn().mockResolvedValue(createdUser) },
+      project: { findFirst: jest.fn() },
+      email: { count: jest.fn(), create: jest.fn() },
     };
     const auth = {
       hashPassword: jest.fn().mockResolvedValue('hashed'),
@@ -100,5 +105,67 @@ describe('DemoService', () => {
     });
     await svc.createDemoUser();
     expect(order).toEqual(['create', 'seed']);
+  });
+
+  describe('injectTestEmail', () => {
+    it('throws Forbidden when caller is not a demo user', async () => {
+      const { svc, prisma } = await makeModule(true);
+      await expect(
+        svc.injectTestEmail('u1', false, 'p1'),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.project.findFirst).not.toHaveBeenCalled();
+      expect(prisma.email.count).not.toHaveBeenCalled();
+      expect(prisma.email.create).not.toHaveBeenCalled();
+    });
+
+    it('throws NotFound when project is not owned by the user', async () => {
+      const { svc, prisma } = await makeModule(true);
+      prisma.project.findFirst.mockResolvedValueOnce(null);
+      await expect(
+        svc.injectTestEmail('u1', true, 'p1'),
+      ).rejects.toThrow(NotFoundException);
+      expect(prisma.project.findFirst).toHaveBeenCalledWith({
+        where: { id: 'p1', userId: 'u1' },
+        select: { id: true },
+      });
+      expect(prisma.email.create).not.toHaveBeenCalled();
+    });
+
+    it('throws Forbidden when the 20-email injection cap is reached', async () => {
+      const { svc, prisma } = await makeModule(true);
+      prisma.project.findFirst.mockResolvedValueOnce({ id: 'p1' });
+      prisma.email.count.mockResolvedValueOnce(20);
+      await expect(
+        svc.injectTestEmail('u1', true, 'p1'),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.email.count).toHaveBeenCalledWith({
+        where: {
+          projectId: 'p1',
+          from: { endsWith: '@inject.demo.local' },
+        },
+      });
+      expect(prisma.email.create).not.toHaveBeenCalled();
+    });
+
+    it('creates one email from the injectable pool on the happy path', async () => {
+      const { svc, prisma } = await makeModule(true);
+      prisma.project.findFirst.mockResolvedValueOnce({ id: 'p1' });
+      prisma.email.count.mockResolvedValueOnce(5);
+      const createdRow = { id: 'e1' };
+      prisma.email.create.mockResolvedValueOnce(createdRow);
+
+      const result = await svc.injectTestEmail('u1', true, 'p1');
+
+      expect(prisma.email.create).toHaveBeenCalledTimes(1);
+      const arg = prisma.email.create.mock.calls[0][0];
+      expect(arg.data.projectId).toBe('p1');
+      expect(arg.data.from).toMatch(/@inject\.demo\.local$/);
+      expect(Array.isArray(arg.data.to)).toBe(true);
+      expect(typeof arg.data.subject).toBe('string');
+      expect(typeof arg.data.bodyText).toBe('string');
+      expect(typeof arg.data.bodyHtml).toBe('string');
+      expect(arg.data.headers).toEqual(expect.any(Object));
+      expect(result).toBe(createdRow);
+    });
   });
 });

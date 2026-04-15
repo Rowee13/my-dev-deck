@@ -5,6 +5,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
 import { DemoConfig } from './demo.config';
 import { DemoController } from './demo.controller';
+import { DemoEmailsController } from './demo-emails.controller';
 import { DemoSeeder } from './demo-seeder.interface';
 import { DemoSeederRegistry } from './demo-seeder.registry';
 import { DemoService } from './demo.service';
@@ -27,7 +28,7 @@ import { DevInboxDemoSeeder } from './seeders/devinbox-demo.seeder';
     },
     { provide: APP_GUARD, useClass: BlockDemoGuard },
   ],
-  controllers: [DemoController],
+  controllers: [DemoController, DemoEmailsController],
   exports: [DemoConfig, DemoSeederRegistry],
 })
 export class DemoModule {}
