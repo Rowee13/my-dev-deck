@@ -1,6 +1,7 @@
 import {
   Injectable,
   ConflictException,
+  ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
@@ -12,7 +13,16 @@ import { Prisma } from '@prisma/client';
 export class ProjectsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(userId: string, createProjectDto: CreateProjectDto) {
+  async create(userId: string, createProjectDto: CreateProjectDto, isDemo = false) {
+    if (isDemo) {
+      const count = await this.prisma.project.count({ where: { userId } });
+      if (count >= 2) {
+        throw new ForbiddenException(
+          'Demo accounts are limited to 2 projects. Sign up to create more.',
+        );
+      }
+    }
+
     try {
       const project = await this.prisma.project.create({
         data: {

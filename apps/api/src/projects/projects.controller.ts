@@ -49,8 +49,8 @@ export class ProjectsController {
     description: 'Project with this slug already exists',
   })
   create(@Req() req: Request, @Body() createProjectDto: CreateProjectDto) {
-    const userId = (req.user as { id: string }).id;
-    return this.projectsService.create(userId, createProjectDto);
+    const user = req.user as { id: string; isDemo?: boolean };
+    return this.projectsService.create(user.id, createProjectDto, user.isDemo);
   }
 
   @Get()
