@@ -9,7 +9,8 @@ import { SAMPLE_EMAILS } from './sample-emails';
  * so new demo users have something to explore in the DevInbox UI.
  *
  * Note: the Project model's `slug` column is globally `@unique`, so the slug
- * is suffixed with 6 chars of a UUID to keep per-demo-user seeds collision-free.
+ * uses a 6-char UUID suffix (`demo-abc123`) to keep per-demo-user seeds
+ * collision-free while keeping the resulting email address short.
  */
 @Injectable()
 export class DevInboxDemoSeeder implements DemoSeeder {
@@ -20,7 +21,7 @@ export class DevInboxDemoSeeder implements DemoSeeder {
     const project = await this.prisma.project.create({
       data: {
         userId,
-        slug: `demo-inbox-${suffix}`,
+        slug: `demo-${suffix}`,
         name: 'Demo Inbox',
         description:
           'Your personal demo project. Explore — this is temporary.',

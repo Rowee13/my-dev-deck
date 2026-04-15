@@ -3,10 +3,10 @@ import { DevInboxDemoSeeder } from './devinbox-demo.seeder';
 import { PrismaService } from '../../prisma/prisma.service';
 
 describe('DevInboxDemoSeeder', () => {
-  it('creates the demo-inbox project and 5 emails', async () => {
+  it('creates the demo project and 5 emails', async () => {
     const prisma = {
       project: {
-        create: jest.fn().mockResolvedValue({ id: 'p1', slug: 'demo-inbox' }),
+        create: jest.fn().mockResolvedValue({ id: 'p1', slug: 'demo' }),
       },
       email: { createMany: jest.fn().mockResolvedValue({ count: 5 }) },
     };
@@ -22,7 +22,7 @@ describe('DevInboxDemoSeeder', () => {
         data: expect.objectContaining({
           userId: 'user-1',
           name: 'Demo Inbox',
-          slug: expect.stringMatching(/^demo-inbox-[a-f0-9]{6}$/),
+          slug: expect.stringMatching(/^demo-[a-f0-9]{6}$/),
         }),
       }),
     );
