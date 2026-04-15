@@ -21,7 +21,8 @@ describe('DevInboxDemoSeeder', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           userId: 'user-1',
-          slug: expect.stringContaining('demo-inbox'),
+          name: 'Demo Inbox',
+          slug: expect.stringMatching(/^demo-inbox-[a-f0-9]{6}$/),
         }),
       }),
     );
@@ -32,5 +33,9 @@ describe('DevInboxDemoSeeder', () => {
     );
     const createManyCall = prisma.email.createMany.mock.calls[0][0];
     expect(createManyCall.data).toHaveLength(5);
+    for (const email of createManyCall.data) {
+      expect(email.projectId).toBe('p1');
+      expect(email.headers).toBeTruthy();
+    }
   });
 });
