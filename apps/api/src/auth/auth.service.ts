@@ -252,6 +252,7 @@ export class AuthService {
         id: true,
         email: true,
         name: true,
+        isDemo: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -261,7 +262,18 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    return user;
+    const ttlMinutes = parseInt(process.env.DEMO_TTL_MINUTES || '60', 10);
+
+    return {
+      ...user,
+      ...(user.isDemo
+        ? {
+            expiresAt: new Date(
+              user.createdAt.getTime() + ttlMinutes * 60_000,
+            ),
+          }
+        : {}),
+    };
   }
 
   /**
