@@ -3,6 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { AuthProvider } from "../contexts/AuthContext";
+import { DemoBanner } from "../components/demo-banner";
 
 const geist = Geist({ subsets: ["latin"] });
 
@@ -18,9 +19,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={geist.className}>
+      <body className={`${geist.className} min-h-screen flex flex-col`}>
         <AuthProvider>
-          {children}
+          <DemoBanner />
+          <div className="flex-1 min-h-0 flex flex-col">
+            {children}
+          </div>
         </AuthProvider>
       </body>
     </html>
