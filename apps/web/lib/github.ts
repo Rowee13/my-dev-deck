@@ -60,8 +60,9 @@ export async function fetchFeatureIdeas(): Promise<FeatureIdea[]> {
   const owner = process.env.GITHUB_REPO_OWNER;
   const name = process.env.GITHUB_REPO_NAME;
   const category = process.env.GITHUB_DISCUSSIONS_CATEGORY_ID;
+  const token = process.env.GITHUB_TOKEN;
 
-  if (!owner || !name || !category) return [];
+  if (!owner || !name || !category || !token) return [];
 
   try {
     const res = await fetch(GITHUB_GRAPHQL, {
@@ -69,6 +70,7 @@ export async function fetchFeatureIdeas(): Promise<FeatureIdea[]> {
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         query: QUERY,

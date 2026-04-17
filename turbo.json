@@ -9,7 +9,8 @@
       "env": [
         "GITHUB_REPO_OWNER",
         "GITHUB_REPO_NAME",
-        "GITHUB_DISCUSSIONS_CATEGORY_ID"
+        "GITHUB_DISCUSSIONS_CATEGORY_ID",
+        "GITHUB_TOKEN"
       ]
     },
     "lint": {
