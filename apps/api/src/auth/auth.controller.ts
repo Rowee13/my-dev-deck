@@ -7,6 +7,7 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -111,7 +112,7 @@ export class AuthController {
         | undefined) || dto?.refreshToken;
 
     if (!refreshToken) {
-      throw new Error('No refresh token provided');
+      throw new UnauthorizedException('No refresh token provided');
     }
 
     const result = await this.authService.refreshTokens(refreshToken);
