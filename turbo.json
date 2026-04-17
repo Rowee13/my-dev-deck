@@ -5,7 +5,12 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "env": [
+        "GITHUB_REPO_OWNER",
+        "GITHUB_REPO_NAME",
+        "GITHUB_DISCUSSIONS_CATEGORY_ID"
+      ]
     },
     "lint": {
       "dependsOn": ["^lint"]
