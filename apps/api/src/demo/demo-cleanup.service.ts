@@ -12,7 +12,7 @@ export class DemoCleanupService {
     private config: DemoConfig,
   ) {}
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron(CronExpression.EVERY_30_MINUTES)
   async handleCleanup() {
     if (!this.config.enabled) return;
     const cutoff = new Date(Date.now() - this.config.ttlMinutes * 60_000);

@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
-import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
 import { DemoCleanupService } from './demo-cleanup.service';
@@ -14,7 +13,7 @@ import { BlockDemoGuard } from './guards/block-demo.guard';
 import { DevInboxDemoSeeder } from './seeders/devinbox-demo.seeder';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), PrismaModule, AuthModule],
+  imports: [PrismaModule, AuthModule],
   providers: [
     DemoConfig,
     DemoService,
