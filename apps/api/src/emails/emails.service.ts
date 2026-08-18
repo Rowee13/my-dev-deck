@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
+import { safeAttachmentPath } from './attachment-path';
 
 const writeFile = promisify(fs.writeFile);
 const mkdir = promisify(fs.mkdir);
@@ -100,8 +101,17 @@ export class EmailsService {
 
     for (const attachment of parsed.attachments) {
       try {
-        const filename = `${Date.now()}-${attachment.filename}`;
-        const filepath = path.join(this.uploadsDir, filename);
+        const filepath = safeAttachmentPath(
+          this.uploadsDir,
+          attachment.filename,
+        );
+
+        if (!filepath) {
+          this.logger.warn(
+            `Skipped attachment with unsafe filename: ${attachment.filename}`,
+          );
+          continue;
+        }
 
         await writeFile(filepath, attachment.content);
 

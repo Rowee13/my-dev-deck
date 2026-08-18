@@ -19,6 +19,10 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { EmailsService } from './emails.service';
+import {
+  contentDispositionFilename,
+  safeContentType,
+} from './attachment-headers';
 import { Request, Response } from 'express';
 import * as fs from 'fs';
 
@@ -155,8 +159,9 @@ export class EmailsController {
     const file = fs.createReadStream(attachment.storagePath);
 
     res.set({
-      'Content-Type': attachment.contentType,
-      'Content-Disposition': `attachment; filename="${attachment.filename}"`,
+      'Content-Type': safeContentType(attachment.contentType),
+      'Content-Disposition': contentDispositionFilename(attachment.filename),
+      'X-Content-Type-Options': 'nosniff',
     });
 
     return new StreamableFile(file);
